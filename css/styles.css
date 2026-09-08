@@ -178,9 +178,9 @@ h2 { letter-spacing: -0.025em; }
 .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--brand); transition: width 125ms linear; }
 .progress-fill.routine { background: var(--accent); }
 .progress-caption { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 0.67rem; font-variant-numeric: tabular-nums; }
-.card-stage { position: relative; display: flex; align-items: center; justify-content: center; width: min(1120px, 100%); min-height: 0; margin: 12px auto; perspective: 1000px; }
+.card-stage { position: relative; display: flex; align-items: center; justify-content: center; width: min(1120px, 100%); min-height: 0; margin: 12px auto; padding: 0; perspective: 1000px; }
 .player-card { border: 1px solid var(--line); background: var(--surface-solid); box-shadow: var(--shadow); }
-.player-card.current { z-index: 2; display: flex; width: min(620px, calc(100vw - 52px)); min-height: min(46vh, 470px); flex-direction: column; align-items: center; justify-content: center; padding: clamp(22px, 5vw, 46px); border-radius: clamp(25px, 7vw, 38px); text-align: center; transition: opacity 280ms, transform 280ms, box-shadow 180ms, border-color 180ms; }
+.player-card.current { z-index: 2; display: flex; width: min(620px, calc(100vw - 52px)); min-height: min(46vh, 470px); flex-direction: column; align-items: center; justify-content: center; margin-inline: auto; padding: clamp(22px, 5vw, 46px); border-radius: clamp(25px, 7vw, 38px); text-align: center; transform: translateX(0); transition: opacity 280ms, transform 280ms, box-shadow 180ms, border-color 180ms; }
 .player-card.current.signal-active { border-color: color-mix(in srgb, var(--accent) 78%, var(--line)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent), var(--shadow); }
 .player-card.current.leaving { opacity: 0; transform: translateX(-35%) rotateY(-7deg) scale(0.94); }
 .player-card.current.entering { opacity: 0; transform: translateX(28%) scale(0.96); }
@@ -276,7 +276,7 @@ h2 { letter-spacing: -0.025em; }
   .add-actions { width: calc(100% - 18px); }
   .add-actions .button { flex: 1; }
   .player-shell { grid-template-rows: auto auto 1fr auto auto; }
-  .player-card.current { width: calc(100vw - 38px); min-height: min(43vh, 390px); padding: 23px 18px; }
+  .player-card.current { width: calc(100vw - 38px); min-height: min(43vh, 390px); margin-inline: auto; padding: 23px 18px; transform: translateX(0); }
   .player-card.current h1 { font-size: clamp(1.9rem, 10vw, 2.9rem); }
   .timer { font-size: clamp(4rem, 22vw, 6.2rem); }
   .next-preview { width: calc(100% - 28px); min-height: 68px; margin-bottom: 8px; }

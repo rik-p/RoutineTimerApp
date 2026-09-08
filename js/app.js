@@ -84,7 +84,7 @@ function settingsDialogMarkup() {
         <header><div><span class="eyebrow">Preferenze</span><h2>Impostazioni</h2></div><button class="icon-button" value="close" aria-label="Chiudi">×</button></header>
         <section class="settings-section">
           <label class="setting-row"><span><strong>Suoni</strong><small>Segnali e fine step</small></span><input name="sound-enabled" type="checkbox" ${state.settings.soundEnabled ? 'checked' : ''}></label>
-          <button class="button secondary wide" value="" type="button" data-action="test-sound">Prova suono</button>
+          <button class="button secondary wide" value="" type="button" data-action="test-sound">Prova beep tra step</button>
           <label class="setting-row"><span><strong>Beep tra step</strong><small>Durata del suono al cambio scheda</small></span><input name="step-transition-sound-ms" type="number" min="50" max="2000" step="10" inputmode="numeric" value="${state.settings.stepTransitionSoundMs}" aria-label="Durata beep tra step in millisecondi"><em>ms</em></label>
           <label class="setting-row"><span><strong>Conto alla rovescia</strong><small>Prima di iniziare</small></span><select name="initial-countdown"><option value="0" ${state.settings.initialCountdown === 0 ? 'selected' : ''}>Nessuno</option><option value="3" ${state.settings.initialCountdown === 3 ? 'selected' : ''}>3 secondi</option><option value="5" ${state.settings.initialCountdown === 5 ? 'selected' : ''}>5 secondi</option></select></label>
           <label class="setting-row"><span><strong>Aspetto</strong><small>Chiaro, scuro o sistema</small></span><select name="theme"><option value="system" ${state.settings.theme === 'system' ? 'selected' : ''}>Sistema</option><option value="light" ${state.settings.theme === 'light' ? 'selected' : ''}>Chiaro</option><option value="dark" ${state.settings.theme === 'dark' ? 'selected' : ''}>Scuro</option></select></label>
@@ -138,7 +138,7 @@ function bindHome() {
     if (action === 'test-sound') {
       void unlockAudio().then((ready) => {
         if (ready) {
-          playCue('intermediate', true);
+          playCue('step', true, state.settings.stepTransitionSoundMs);
         } else {
           toast('Il browser non ha autorizzato l’audio. Riprova toccando il pulsante.');
         }
@@ -155,13 +155,15 @@ function bindHome() {
     }
   });
 
-  root.querySelector('#settings-dialog')?.addEventListener('change', (event) => {
+  const saveSetting = (event) => {
     if (event.target.name === 'sound-enabled') state.settings.soundEnabled = event.target.checked;
     if (event.target.name === 'step-transition-sound-ms') state.settings.stepTransitionSoundMs = Number(event.target.value);
     if (event.target.name === 'initial-countdown') state.settings.initialCountdown = Number(event.target.value);
     if (event.target.name === 'theme') state.settings.theme = event.target.value;
     if (event.target.id !== 'import-file') updateState(state);
-  });
+  };
+  root.querySelector('#settings-dialog')?.addEventListener('change', saveSetting);
+  root.querySelector('#settings-dialog')?.addEventListener('input', saveSetting);
   root.querySelector('#import-file')?.addEventListener('change', importBackup);
 }
 

@@ -64,7 +64,7 @@ export class RoutinePlayer {
           <article id="current-card" class="player-card current">
             ${this.currentCardMarkup(step)}
           </article>
-          <article id="next-card" class="player-card side next" aria-hidden="true">${this.sideCardMarkup(next)}</article>
+      <article id="next-card" class="player-card side next" aria-hidden="true">${this.sideCardMarkup(next)}</article>
         </section>
         <aside id="next-preview" class="next-preview" aria-label="Prossimo esercizio">${this.nextPreviewMarkup()}</aside>
         <section class="player-controls" aria-label="Controlli timer">
@@ -99,8 +99,8 @@ export class RoutinePlayer {
 
   nextPreviewMarkup() {
     const nextExercise = this.routine.steps.slice(this.currentStepIndex + 1).find((step) => step.type === 'exercise');
-    if (!nextExercise) return '<span class="next-kicker">NEXT →</span><strong>Fine</strong>';
-    return `<span class="next-kicker">NEXT →</span><strong>${escapeHtml(nextExercise.name)}</strong>`;
+    const label = nextExercise ? escapeHtml(nextExercise.name) : 'Fine';
+    return `<span class="next-preview-mark" aria-hidden="true">→</span><div><span class="next-kicker">NEXT</span><strong>${label}</strong></div>`;
   }
 
   cacheElements() {
@@ -120,7 +120,10 @@ export class RoutinePlayer {
       const action = event.target.closest('[data-action]')?.dataset.action;
       if (action === 'toggle') this.togglePause();
       if (action === 'previous') this.goToStep(Math.max(0, this.currentStepIndex - 1));
-      if (action === 'next') this.goToStep(this.currentStepIndex + 1);
+      if (action === 'next') {
+        this.playStepTransitionCue();
+        this.goToStep(this.currentStepIndex + 1);
+      }
       if (action === 'restart') this.goToStep(this.currentStepIndex);
       if (action === 'exit') this.requestExit();
       if (action === 'sound') this.toggleSound();
@@ -206,9 +209,13 @@ export class RoutinePlayer {
   }
 
   advanceAutomatically() {
+    this.playStepTransitionCue();
+    this.goToStep(this.currentStepIndex + 1, true);
+  }
+
+  playStepTransitionCue() {
     const isLastStep = this.currentStepIndex === this.routine.steps.length - 1;
     playCue(isLastStep ? 'complete' : 'step', this.settings.soundEnabled, this.settings.stepTransitionSoundMs);
-    this.goToStep(this.currentStepIndex + 1, true);
   }
 
   goToStep(index, animated = false) {

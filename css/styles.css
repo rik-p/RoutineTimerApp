@@ -194,9 +194,11 @@ h2 { letter-spacing: -0.025em; }
 .player-card.previous { left: 1.5%; transform: translateX(-27%) scale(0.92); }
 .player-card.next { right: 1.5%; transform: translateX(27%) scale(0.92); }
 .side-empty { display: grid; min-height: 250px; place-items: center; color: var(--muted); }
-.next-preview { display: flex; align-items: center; gap: 11px; width: min(620px, calc(100% - 36px)); min-height: 50px; margin: 0 auto 12px; padding: 10px 15px; border: 1px solid var(--line); border-radius: 15px; color: var(--text); background: color-mix(in srgb, var(--surface) 84%, transparent); box-shadow: 0 8px 20px color-mix(in srgb, var(--text) 6%, transparent); }
-.next-kicker { flex: 0 0 auto; color: var(--brand); font-size: 0.68rem; font-weight: 820; letter-spacing: 0.09em; }
-.next-preview strong { overflow: hidden; font-size: clamp(0.9rem, 3.5vw, 1.1rem); text-overflow: ellipsis; white-space: nowrap; }
+.next-preview { display: flex; align-items: center; gap: 13px; width: min(620px, calc(100% - 36px)); min-height: 76px; margin: 0 auto 12px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 21px; color: var(--text); background: var(--surface-solid); box-shadow: var(--shadow); }
+.next-preview-mark { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border-radius: 14px; color: var(--brand); background: var(--brand-soft); font-size: 1.35rem; font-weight: 820; }
+.next-preview div { min-width: 0; }
+.next-kicker { display: block; margin-bottom: 3px; color: var(--brand); font-size: 0.65rem; font-weight: 820; letter-spacing: 0.11em; }
+.next-preview strong { display: block; overflow: hidden; font-size: clamp(0.98rem, 3.8vw, 1.18rem); text-overflow: ellipsis; white-space: nowrap; }
 .player-controls { display: grid; grid-template-columns: 74px 94px 74px; justify-content: center; gap: clamp(9px, 3vw, 18px); }
 .control-button { display: flex; min-height: 68px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); }
 .control-button span { font-size: 1.25rem; }
@@ -280,7 +282,7 @@ h2 { letter-spacing: -0.025em; }
   .player-card.current { width: calc(100vw - 38px); min-height: min(43vh, 390px); padding: 23px 18px; transform: translateX(-2vw); }
   .player-card.current h1 { font-size: clamp(1.9rem, 10vw, 2.9rem); }
   .timer { font-size: clamp(4rem, 22vw, 6.2rem); }
-  .next-preview { width: calc(100% - 28px); margin-bottom: 8px; }
+  .next-preview { width: calc(100% - 28px); min-height: 68px; margin-bottom: 8px; }
   .signal-overlay { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 96px); }
   .data-actions { flex-direction: column; }
   .data-actions .button { width: 100%; }

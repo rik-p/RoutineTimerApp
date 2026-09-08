@@ -1,17 +1,18 @@
 let context;
 
-function getContext() {
+function getAudioContextConstructor() {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return null;
-  context ||= new AudioContext();
-  return context;
+  return AudioContext || null;
 }
 
 export async function unlockAudio() {
-  const audioContext = getContext();
-  if (!audioContext) return false;
+  const AudioContext = getAudioContextConstructor();
+  if (!AudioContext) return false;
   try {
+    if (!context || context.state === 'closed') context = new AudioContext();
+    const audioContext = context;
     if (audioContext.state === 'suspended') await audioContext.resume();
+    if (audioContext.state === 'interrupted') await audioContext.resume();
     return audioContext.state === 'running';
   } catch (error) {
     console.warn('Audio non disponibile in questo momento.', error);
@@ -20,7 +21,7 @@ export async function unlockAudio() {
 }
 
 function tone(frequency, duration = 0.12, delay = 0, volume = 0.18) {
-  const audioContext = getContext();
+  const audioContext = context;
   if (!audioContext || audioContext.state !== 'running') return;
   const start = audioContext.currentTime + delay;
   const oscillator = audioContext.createOscillator();

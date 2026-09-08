@@ -1,4 +1,4 @@
-import { playCue, unlockAudio } from './audio.js';
+import { playCue } from './audio.js';
 import { TimerEngine } from './timer-engine.js';
 import { deepClone, escapeHtml, formatDuration, routineProgress, totalDuration } from './utils.js';
 
@@ -32,7 +32,6 @@ export class RoutinePlayer {
     }
     this.renderPlayer();
     this.bindControls();
-    await unlockAudio();
     this.startCountdown();
   }
 

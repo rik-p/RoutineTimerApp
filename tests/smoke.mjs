@@ -14,6 +14,7 @@ assert(totalDuration(demo) === 900, 'La demo deve durare 15 minuti.');
 assert(formatDuration(3661) === '1:01:01', 'Formato durata oltre un’ora non valido.');
 assert(routineProgress(demo, 1, 0) === 60 / 900, 'Il progresso deve essere pesato sul tempo.');
 assert(sanitizeState({ schemaVersion: 1, routines: [demo], settings: {} }).routines.length === 1, 'Sanitizzazione non valida.');
+assert(sanitizeState({ schemaVersion: 1, routines: [], settings: { stepTransitionSoundMs: 9000 } }).settings.stepTransitionSoundMs === 2000, 'La durata suono deve rispettare il massimo.');
 let rejectedInvalidBackup = false;
 try {
   sanitizeState({ routines: [] });

@@ -76,6 +76,7 @@ export function createInitialState() {
     routines: [createDemoRoutine()],
     settings: {
       soundEnabled: true,
+      stepTransitionSoundMs: 180,
       initialCountdown: 3,
       theme: 'system',
     },
@@ -139,6 +140,7 @@ export function sanitizeState(candidate) {
     routines: candidate.routines.map(sanitizeRoutine).filter(Boolean).slice(0, 200),
     settings: {
       soundEnabled: settings.soundEnabled !== false,
+      stepTransitionSoundMs: clamp(Math.round(Number(settings.stepTransitionSoundMs) || 180), 50, 2000),
       initialCountdown: clamp(Math.round(Number(settings.initialCountdown) || 0), 0, 10),
       theme: ['system', 'light', 'dark'].includes(settings.theme) ? settings.theme : 'system',
     },

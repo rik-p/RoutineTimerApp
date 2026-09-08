@@ -36,14 +36,17 @@ function tone(frequency, duration = 0.12, delay = 0, volume = 0.18) {
   oscillator.stop(start + duration + 0.03);
 }
 
-export function playCue(kind, enabled = true) {
+export function playCue(kind, enabled = true, stepDurationMs = 180) {
   if (!enabled) return;
   if (kind === 'countdown') tone(520, 0.1);
   if (kind === 'intermediate') {
     tone(660, 0.13);
     tone(820, 0.16, 0.16);
   }
-  if (kind === 'step') tone(760, 0.18);
+  if (kind === 'step') {
+    const duration = Math.min(2, Math.max(0.05, Number(stepDurationMs) / 1000 || 0.18));
+    tone(760, duration);
+  }
   if (kind === 'complete') {
     tone(600, 0.16);
     tone(760, 0.16, 0.2);

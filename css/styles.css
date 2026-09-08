@@ -226,6 +226,8 @@ h2 { letter-spacing: -0.025em; }
 .setting-row strong, .setting-row small { display: block; }
 .setting-row small { margin-top: 3px; color: var(--muted); }
 .setting-row input[type="checkbox"] { width: 22px; height: 22px; }
+.setting-row input[type="number"] { width: 86px; min-height: 44px; padding: 8px; border: 1px solid var(--line); border-radius: 11px; background: var(--bg); text-align: right; }
+.setting-row em { margin-left: -14px; color: var(--muted); font-size: 0.75rem; font-style: normal; pointer-events: none; }
 .setting-row select { width: auto; max-width: 140px; }
 .data-actions { display: flex; gap: 8px; margin-bottom: 12px; }
 .file-button { position: relative; cursor: pointer; }
@@ -286,4 +288,3 @@ h2 { letter-spacing: -0.025em; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
-

@@ -190,7 +190,8 @@ export class RoutinePlayer {
   }
 
   advanceAutomatically() {
-    playCue(this.currentStepIndex === this.routine.steps.length - 1 ? 'complete' : 'step', this.settings.soundEnabled);
+    const isLastStep = this.currentStepIndex === this.routine.steps.length - 1;
+    playCue(isLastStep ? 'complete' : 'step', this.settings.soundEnabled, this.settings.stepTransitionSoundMs);
     this.goToStep(this.currentStepIndex + 1, true);
   }
 

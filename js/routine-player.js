@@ -66,7 +66,7 @@ export class RoutinePlayer {
           </article>
           <article id="next-card" class="player-card side next" aria-hidden="true">${this.sideCardMarkup(next)}</article>
         </section>
-        <p id="next-label" class="next-label">${next ? `Prossimo: ${escapeHtml(next.name)} — ${formatDuration(next.duration)}` : 'Ultimo step'}</p>
+        <aside id="next-preview" class="next-preview" aria-label="Prossimo esercizio">${this.nextPreviewMarkup()}</aside>
         <section class="player-controls" aria-label="Controlli timer">
           <button class="control-button secondary" data-action="previous" aria-label="Step precedente"><span aria-hidden="true">↶</span><small>Indietro</small></button>
           <button class="control-button primary-control" data-action="toggle"><span data-toggle-icon aria-hidden="true">Ⅱ</span><small data-toggle-label>Pausa</small></button>
@@ -95,6 +95,12 @@ export class RoutinePlayer {
   sideCardMarkup(step) {
     if (!step) return '<span class="side-empty">Fine</span>';
     return `<span class="step-type ${step.type}">${step.type === 'pause' ? 'Pausa' : 'Esercizio'}</span><h2>${escapeHtml(step.name)}</h2><p>${formatDuration(step.duration)}</p>`;
+  }
+
+  nextPreviewMarkup() {
+    const nextExercise = this.routine.steps.slice(this.currentStepIndex + 1).find((step) => step.type === 'exercise');
+    if (!nextExercise) return '<span class="next-kicker">NEXT →</span><strong>Fine</strong>';
+    return `<span class="next-kicker">NEXT →</span><strong>${escapeHtml(nextExercise.name)}</strong>`;
   }
 
   cacheElements() {
@@ -233,7 +239,7 @@ export class RoutinePlayer {
       this.root.querySelector('#previous-card').innerHTML = this.sideCardMarkup(previous);
       this.root.querySelector('#next-card').innerHTML = this.sideCardMarkup(next);
       this.root.querySelector('#step-counter').textContent = `Step ${this.currentStepIndex + 1} di ${this.routine.steps.length}`;
-      this.root.querySelector('#next-label').textContent = next ? `Prossimo: ${next.name} — ${formatDuration(next.duration)}` : 'Ultimo step';
+      this.root.querySelector('#next-preview').innerHTML = this.nextPreviewMarkup();
       this.cacheElements();
       requestAnimationFrame(() => currentCard.classList.remove('entering'));
     }, animated ? 260 : 0);

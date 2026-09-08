@@ -180,7 +180,7 @@ h2 { letter-spacing: -0.025em; }
 .progress-caption { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 0.67rem; font-variant-numeric: tabular-nums; }
 .card-stage { position: relative; display: flex; align-items: center; justify-content: center; width: min(1120px, 100%); min-height: 0; margin: 12px auto; perspective: 1000px; }
 .player-card { border: 1px solid var(--line); background: var(--surface-solid); box-shadow: var(--shadow); }
-.player-card.current { z-index: 2; display: flex; width: min(620px, calc(100vw - 52px)); min-height: min(53vh, 540px); flex-direction: column; align-items: center; justify-content: center; padding: clamp(22px, 5vw, 54px); border-radius: clamp(25px, 7vw, 38px); text-align: center; transition: opacity 280ms, transform 280ms, box-shadow 180ms, border-color 180ms; }
+.player-card.current { z-index: 2; display: flex; width: min(620px, calc(100vw - 52px)); min-height: min(46vh, 470px); flex-direction: column; align-items: center; justify-content: center; padding: clamp(22px, 5vw, 46px); border-radius: clamp(25px, 7vw, 38px); text-align: center; transition: opacity 280ms, transform 280ms, box-shadow 180ms, border-color 180ms; }
 .player-card.current.signal-active { border-color: color-mix(in srgb, var(--accent) 78%, var(--line)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent), var(--shadow); }
 .player-card.current.leaving { opacity: 0; transform: translateX(-35%) rotateY(-7deg) scale(0.94); }
 .player-card.current.entering { opacity: 0; transform: translateX(28%) scale(0.96); }
@@ -194,7 +194,9 @@ h2 { letter-spacing: -0.025em; }
 .player-card.previous { left: 1.5%; transform: translateX(-27%) scale(0.92); }
 .player-card.next { right: 1.5%; transform: translateX(27%) scale(0.92); }
 .side-empty { display: grid; min-height: 250px; place-items: center; color: var(--muted); }
-.next-label { min-height: 1.2em; margin: 0 auto 12px; color: var(--muted); text-align: center; font-size: 0.8rem; }
+.next-preview { display: flex; align-items: center; gap: 11px; width: min(620px, calc(100% - 36px)); min-height: 50px; margin: 0 auto 12px; padding: 10px 15px; border: 1px solid var(--line); border-radius: 15px; color: var(--text); background: color-mix(in srgb, var(--surface) 84%, transparent); box-shadow: 0 8px 20px color-mix(in srgb, var(--text) 6%, transparent); }
+.next-kicker { flex: 0 0 auto; color: var(--brand); font-size: 0.68rem; font-weight: 820; letter-spacing: 0.09em; }
+.next-preview strong { overflow: hidden; font-size: clamp(0.9rem, 3.5vw, 1.1rem); text-overflow: ellipsis; white-space: nowrap; }
 .player-controls { display: grid; grid-template-columns: 74px 94px 74px; justify-content: center; gap: clamp(9px, 3vw, 18px); }
 .control-button { display: flex; min-height: 68px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--line); border-radius: 22px; background: var(--surface); }
 .control-button span { font-size: 1.25rem; }
@@ -275,17 +277,17 @@ h2 { letter-spacing: -0.025em; }
   .add-actions { width: calc(100% - 18px); }
   .add-actions .button { flex: 1; }
   .player-shell { grid-template-rows: auto auto 1fr auto auto; }
-  .player-card.current { width: calc(100vw - 38px); min-height: min(51vh, 450px); padding: 23px 18px; transform: translateX(-2vw); }
+  .player-card.current { width: calc(100vw - 38px); min-height: min(43vh, 390px); padding: 23px 18px; transform: translateX(-2vw); }
   .player-card.current h1 { font-size: clamp(1.9rem, 10vw, 2.9rem); }
   .timer { font-size: clamp(4rem, 22vw, 6.2rem); }
-  .next-label { max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .next-preview { width: calc(100% - 28px); margin-bottom: 8px; }
   .signal-overlay { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 96px); }
   .data-actions { flex-direction: column; }
   .data-actions .button { width: 100%; }
 }
 
 @media (max-height: 700px) {
-  .player-card.current { min-height: 43vh; }
+  .player-card.current { min-height: 37vh; }
   .player-card.current h1 { margin: 10px 0 4px; }
   .step-notes { margin-bottom: 12px; }
   .timer { margin-bottom: 14px; font-size: clamp(3.7rem, 16vh, 7rem); }

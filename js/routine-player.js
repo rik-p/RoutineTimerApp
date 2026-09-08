@@ -47,7 +47,6 @@ export class RoutinePlayer {
   renderPlayer() {
     const step = this.routine.steps[this.currentStepIndex];
     const previous = this.routine.steps[this.currentStepIndex - 1];
-    const next = this.routine.steps[this.currentStepIndex + 1];
     this.root.innerHTML = `
       <main class="player-shell">
         <header class="player-header">
@@ -64,7 +63,6 @@ export class RoutinePlayer {
           <article id="current-card" class="player-card current">
             ${this.currentCardMarkup(step)}
           </article>
-      <article id="next-card" class="player-card side next" aria-hidden="true">${this.sideCardMarkup(next)}</article>
         </section>
         <aside id="next-preview" class="next-preview" aria-label="Prossimo esercizio">${this.nextPreviewMarkup()}</aside>
         <section class="player-controls" aria-label="Controlli timer">
@@ -239,12 +237,10 @@ export class RoutinePlayer {
     window.setTimeout(() => {
       const step = this.routine.steps[this.currentStepIndex];
       const previous = this.routine.steps[this.currentStepIndex - 1];
-      const next = this.routine.steps[this.currentStepIndex + 1];
       currentCard.innerHTML = this.currentCardMarkup(step);
       currentCard.classList.remove('leaving');
       currentCard.classList.add('entering');
       this.root.querySelector('#previous-card').innerHTML = this.sideCardMarkup(previous);
-      this.root.querySelector('#next-card').innerHTML = this.sideCardMarkup(next);
       this.root.querySelector('#step-counter').textContent = `Step ${this.currentStepIndex + 1} di ${this.routine.steps.length}`;
       this.root.querySelector('#next-preview').innerHTML = this.nextPreviewMarkup();
       this.cacheElements();

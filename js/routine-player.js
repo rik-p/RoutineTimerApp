@@ -73,7 +73,10 @@ export class RoutinePlayer {
           <button class="control-button secondary" data-action="next" aria-label="Salta al prossimo step"><span aria-hidden="true">↷</span><small>Salta</small></button>
           <button class="restart-button" data-action="restart">Riavvia step</button>
         </section>
-        <div id="signal-overlay" class="signal-overlay" role="status" aria-live="assertive" hidden></div>
+        <div id="signal-overlay" class="signal-overlay" role="status" aria-live="assertive" hidden>
+          <span class="signal-icon" aria-hidden="true">↔</span>
+          <div class="signal-copy"><small>Segnale intermedio</small><strong id="signal-label"></strong></div>
+        </div>
         <div id="countdown-overlay" class="countdown-overlay" role="status" aria-live="assertive" hidden></div>
         <div class="sr-only" id="player-announcer" aria-live="assertive"></div>
       </main>`;
@@ -101,6 +104,7 @@ export class RoutinePlayer {
     this.routineElapsed = this.root.querySelector('#routine-elapsed');
     this.routinePercent = this.root.querySelector('#routine-percent');
     this.signalOverlay = this.root.querySelector('#signal-overlay');
+    this.signalLabel = this.root.querySelector('#signal-label');
     this.countdownOverlay = this.root.querySelector('#countdown-overlay');
     this.announcer = this.root.querySelector('#player-announcer');
   }
@@ -184,9 +188,15 @@ export class RoutinePlayer {
 
   showSignal(label) {
     clearTimeout(this.overlayTimeout);
-    this.signalOverlay.textContent = label;
+    this.signalLabel.textContent = label;
     this.signalOverlay.hidden = false;
-    this.overlayTimeout = window.setTimeout(() => { this.signalOverlay.hidden = true; }, 3000);
+    this.root.querySelector('#current-card')?.classList.add('signal-active');
+    this.overlayTimeout = window.setTimeout(() => this.hideSignal(), 3000);
+  }
+
+  hideSignal() {
+    if (this.signalOverlay) this.signalOverlay.hidden = true;
+    this.root.querySelector('#current-card')?.classList.remove('signal-active');
   }
 
   advanceAutomatically() {
@@ -204,7 +214,7 @@ export class RoutinePlayer {
     }
     this.engine.stop();
     clearTimeout(this.overlayTimeout);
-    this.signalOverlay.hidden = true;
+    this.hideSignal();
     this.currentStepIndex = Math.max(0, index);
     this.updateCards(animated);
     this.startStep();
@@ -284,6 +294,7 @@ export class RoutinePlayer {
   destroy() {
     this.engine.stop();
     clearTimeout(this.overlayTimeout);
+    this.hideSignal();
     clearTimeout(this.countdownTimeout);
     this.status = 'idle';
   }

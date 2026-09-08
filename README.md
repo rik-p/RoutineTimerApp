@@ -60,4 +60,4 @@ La funzione `createDemoRoutine()` in `js/models.js` definisce il dataset inizial
 
 ## PWA e aggiornamenti
 
-Il service worker mette in cache l'app shell e rimuove le cache di versioni precedenti. Quando si pubblica una nuova release, incrementare `CACHE_VERSION` in `service-worker.js` per forzare il rinnovo controllato della cache.
+Il service worker mette in cache l'app shell e rimuove le cache di versioni precedenti. Quando si pubblica una nuova release, incrementare `CACHE_VERSION` in `service-worker.js` e `APP_VERSION` in `js/app.js`. L'app rileva il nuovo service worker e mostra il pulsante **Aggiorna ora**: la nuova cache viene attivata solo dopo il tap dell'utente, senza cancellare routine o impostazioni locali.

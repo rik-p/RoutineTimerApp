@@ -231,6 +231,7 @@ h2 { letter-spacing: -0.025em; }
 .settings-dialog h2 { margin: 0; }
 .settings-section { padding: 18px 22px; border-bottom: 1px solid var(--line); }
 .settings-section h3 { font-size: 0.9rem; }
+.app-version { margin: 0; padding: 14px 22px; color: var(--muted); font-size: 0.72rem; text-align: center; }
 .setting-row { display: flex; min-height: 65px; align-items: center; justify-content: space-between; gap: 20px; }
 .setting-row strong, .setting-row small { display: block; }
 .setting-row small { margin-top: 3px; color: var(--muted); }
@@ -243,6 +244,11 @@ h2 { letter-spacing: -0.025em; }
 .file-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .toast-region { position: fixed; z-index: 50; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); display: grid; gap: 8px; }
 .toast { padding: 12px 16px; border: 1px solid var(--line); border-radius: 13px; color: var(--text); background: var(--surface-solid); box-shadow: var(--shadow); animation: toast-in 250ms ease-out both; }
+.update-prompt { display: flex; align-items: center; gap: 14px; max-width: min(440px, calc(100vw - 32px)); padding: 14px; border: 1px solid var(--line); border-radius: 18px; color: var(--text); background: var(--surface-solid); box-shadow: var(--shadow); animation: toast-in 250ms ease-out both; }
+.update-prompt div { min-width: 0; }
+.update-prompt strong, .update-prompt span { display: block; }
+.update-prompt span { margin-top: 3px; color: var(--muted); font-size: 0.76rem; }
+.update-prompt .button { flex: 0 0 auto; white-space: nowrap; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(10px); } }
 @keyframes signal-in { from { opacity: 0; transform: translateY(12px) scale(0.97); } }
 
@@ -283,6 +289,8 @@ h2 { letter-spacing: -0.025em; }
   .signal-overlay { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 96px); }
   .data-actions { flex-direction: column; }
   .data-actions .button { width: 100%; }
+  .update-prompt { align-items: stretch; flex-direction: column; }
+  .update-prompt .button { width: 100%; }
 }
 
 @media (max-height: 700px) {

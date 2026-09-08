@@ -6,10 +6,12 @@ import { parseRouteHash, toRouteHash } from './router.js';
 import { loadState, mergeState, replaceState, resetState, saveState } from './storage.js';
 import { countSteps, downloadJson, escapeHtml, formatDate, formatDuration, readJsonFile, totalDuration } from './utils.js';
 
+const APP_VERSION = '1.1.0';
 let root = document.querySelector('#app');
 const toastRegion = document.querySelector('#toast-region');
 let state = loadState();
 let activePlayer = null;
+let updateRequested = false;
 
 function resetViewRoot() {
   const replacement = root.cloneNode(false);
@@ -90,6 +92,7 @@ function settingsDialogMarkup() {
           <label class="setting-row"><span><strong>Aspetto</strong><small>Chiaro, scuro o sistema</small></span><select name="theme"><option value="system" ${state.settings.theme === 'system' ? 'selected' : ''}>Sistema</option><option value="light" ${state.settings.theme === 'light' ? 'selected' : ''}>Chiaro</option><option value="dark" ${state.settings.theme === 'dark' ? 'selected' : ''}>Scuro</option></select></label>
         </section>
         <section class="settings-section"><h3>Backup dei dati</h3><div class="data-actions"><button class="button secondary" value="" type="button" data-action="export">Esporta JSON</button><label class="button secondary file-button">Importa JSON<input id="import-file" type="file" accept="application/json,.json"></label></div><button class="text-button danger-text" value="" type="button" data-action="reset">Ripristina dati iniziali</button></section>
+        <p class="app-version">Ritmo · Versione ${APP_VERSION}</p>
       </form>
     </dialog>`;
 }
@@ -260,15 +263,39 @@ async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   try {
     const registration = await navigator.serviceWorker.register('./service-worker.js');
+    const offerUpdate = () => {
+      if (registration.waiting && navigator.serviceWorker.controller) showUpdatePrompt(registration);
+    };
+    offerUpdate();
     registration.addEventListener('updatefound', () => {
       const worker = registration.installing;
       worker?.addEventListener('statechange', () => {
-        if (worker.state === 'installed' && navigator.serviceWorker.controller) toast('App aggiornata. La nuova versione è pronta.');
+        if (worker.state === 'installed') offerUpdate();
       });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (updateRequested) window.location.reload();
     });
   } catch (error) {
     console.warn('Service worker non registrato.', error);
   }
+}
+
+function showUpdatePrompt(registration) {
+  if (document.querySelector('#update-prompt')) return;
+  const prompt = document.createElement('section');
+  prompt.id = 'update-prompt';
+  prompt.className = 'update-prompt';
+  prompt.setAttribute('role', 'status');
+  prompt.innerHTML = `<div><strong>Aggiornamento disponibile</strong><span>È pronta una nuova versione di Ritmo.</span></div><button class="button primary" type="button">Aggiorna ora</button>`;
+  prompt.querySelector('button').addEventListener('click', () => {
+    if (activePlayer?.isActive && !confirm('Aggiornare ora? La routine in corso verrà terminata.')) return;
+    updateRequested = true;
+    prompt.querySelector('button').disabled = true;
+    prompt.querySelector('button').textContent = 'Aggiornamento…';
+    registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+  });
+  toastRegion.append(prompt);
 }
 
 applyTheme();

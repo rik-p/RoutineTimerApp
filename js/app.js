@@ -33,11 +33,12 @@ function toast(message) {
 }
 
 function go(route) {
-  location.hash = route;
+  location.hash = `/${String(route).replace(/^\/+/, '')}`;
 }
 
 function parseRoute() {
-  const [, view = 'home', id] = location.hash.split('/');
+  const segments = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  const [view = 'home', id] = segments;
   return { view, id };
 }
 

@@ -5,11 +5,12 @@ class ElementStub {
     this.isAppRoot = isAppRoot;
     this.dataset = {};
     this.innerHTML = '';
+    this.listeners = {};
   }
 
   cloneNode() { return new ElementStub(this.isAppRoot); }
   replaceWith(replacement) { if (this.isAppRoot) currentRoot = replacement; }
-  addEventListener() {}
+  addEventListener(type, callback) { this.listeners[type] = callback; }
   querySelector() { return null; }
   querySelectorAll() { return []; }
   append() {}
@@ -38,10 +39,21 @@ globalThis.confirm = () => true;
 
 await import('../js/app.js');
 assertMarkup();
+assertCreateRoute();
 print('Avvio applicazione con DOM simulato: OK');
 
 function assertMarkup() {
   const renderedRoot = document.querySelector('#app');
   if (!renderedRoot.innerHTML.includes('Ritmo')) throw new Error('La home non è stata renderizzata.');
   if (!renderedRoot.innerHTML.includes('Routine mattutina')) throw new Error('La routine demo non è visibile.');
+}
+
+function assertCreateRoute() {
+  const event = {
+    target: {
+      closest: (selector) => selector === '[data-action]' ? { dataset: { action: 'create' }, closest: () => null } : null,
+    },
+  };
+  document.querySelector('#app').listeners.click(event);
+  if (!location.hash.startsWith('/edit/')) throw new Error('La creazione deve usare una route editor valida.');
 }

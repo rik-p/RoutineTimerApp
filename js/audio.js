@@ -9,10 +9,17 @@ function getContext() {
 
 export async function unlockAudio() {
   const audioContext = getContext();
-  if (audioContext?.state === 'suspended') await audioContext.resume();
+  if (!audioContext) return false;
+  try {
+    if (audioContext.state === 'suspended') await audioContext.resume();
+    return audioContext.state === 'running';
+  } catch (error) {
+    console.warn('Audio non disponibile in questo momento.', error);
+    return false;
+  }
 }
 
-function tone(frequency, duration = 0.12, delay = 0, volume = 0.12) {
+function tone(frequency, duration = 0.12, delay = 0, volume = 0.18) {
   const audioContext = getContext();
   if (!audioContext || audioContext.state !== 'running') return;
   const start = audioContext.currentTime + delay;
@@ -42,4 +49,3 @@ export function playCue(kind, enabled = true) {
     tone(940, 0.28, 0.4);
   }
 }
-

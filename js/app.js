@@ -1,6 +1,7 @@
 import { cloneRoutine, createRoutine, sanitizeState } from './models.js';
 import { RoutineEditor } from './routine-editor.js';
 import { RoutinePlayer } from './routine-player.js';
+import { parseRouteHash, toRouteHash } from './router.js';
 import { loadState, mergeState, replaceState, resetState, saveState } from './storage.js';
 import { countSteps, downloadJson, escapeHtml, formatDate, formatDuration, readJsonFile, totalDuration } from './utils.js';
 
@@ -33,13 +34,11 @@ function toast(message) {
 }
 
 function go(route) {
-  location.hash = `/${String(route).replace(/^\/+/, '')}`;
+  location.hash = toRouteHash(route);
 }
 
 function parseRoute() {
-  const segments = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
-  const [view = 'home', id] = segments;
-  return { view, id };
+  return parseRouteHash(location.hash);
 }
 
 function renderHome() {

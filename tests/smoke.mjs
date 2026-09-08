@@ -1,6 +1,7 @@
 import { createDemoRoutine, createInitialState, sanitizeState } from '../js/models.js';
 import { loadState, saveState } from '../js/storage.js';
 import { TimerEngine } from '../js/timer-engine.js';
+import { parseRouteHash, toRouteHash } from '../js/router.js';
 import { formatDuration, routineProgress, totalDuration } from '../js/utils.js';
 
 function assert(condition, message) {
@@ -20,6 +21,9 @@ try {
   rejectedInvalidBackup = true;
 }
 assert(rejectedInvalidBackup, 'Un backup senza versione deve essere rifiutato.');
+assert(toRouteHash('edit/abc') === '#/edit/abc', 'La route generata non è valida.');
+assert(parseRouteHash('#/edit/abc').id === 'abc', 'La route standard non viene letta.');
+assert(parseRouteHash('#edit/abc').id === 'abc', 'La vecchia route non è retrocompatibile.');
 
 const values = new Map();
 globalThis.localStorage = {

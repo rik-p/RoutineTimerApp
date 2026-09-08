@@ -39,6 +39,7 @@ Tutti i percorsi sono relativi e funzionano anche all'indirizzo `https://USERNAM
 │   ├── models.js              # modelli, demo e validazione import
 │   ├── routine-editor.js      # editor e riordino step
 │   ├── routine-player.js      # stato e UI del player
+│   ├── router.js              # URL interni compatibili con GitHub Pages
 │   ├── storage.js             # persistenza centralizzata
 │   ├── timer-engine.js        # timer basato su timestamp reali
 │   └── utils.js               # durata, formattazione e helper
@@ -59,5 +60,4 @@ La funzione `createDemoRoutine()` in `js/models.js` definisce il dataset inizial
 
 ## PWA e aggiornamenti
 
-Il service worker mette in cache l'app shell e rimuove le cache di versioni precedenti. Quando si pubblica una nuova release, aggiornare `CACHE_VERSION` in `service-worker.js` (per esempio da `ritmo-shell-v1` a `ritmo-shell-v2`) per forzare il rinnovo controllato della cache.
-
+Il service worker mette in cache l'app shell e rimuove le cache di versioni precedenti. Quando si pubblica una nuova release, incrementare `CACHE_VERSION` in `service-worker.js` per forzare il rinnovo controllato della cache.

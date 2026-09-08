@@ -55,5 +55,18 @@ function assertCreateRoute() {
     },
   };
   document.querySelector('#app').listeners.click(event);
-  if (!location.hash.startsWith('/edit/')) throw new Error('La creazione deve usare una route editor valida.');
+  if (!location.hash.startsWith('#/edit/')) throw new Error('La creazione deve usare una route editor valida.');
+  const createdId = location.hash.split('/')[2];
+  const storedState = JSON.parse(Array.from(localStorage.values.values())[0]);
+  if (!storedState.routines.some((routine) => routine.id === createdId)) {
+    throw new Error('L’ID nella route non corrisponde alla routine salvata.');
+  }
+
+  const card = { dataset: { routineId: createdId } };
+  const editButton = {
+    dataset: { action: 'edit' },
+    closest: (selector) => selector === '[data-routine-id]' ? card : null,
+  };
+  document.querySelector('#app').listeners.click({ target: { closest: () => editButton } });
+  if (location.hash !== `#/edit/${createdId}`) throw new Error('La modifica deve aprire la routine salvata.');
 }

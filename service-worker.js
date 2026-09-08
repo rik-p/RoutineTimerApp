@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'ritmo-shell-v2';
+const CACHE_VERSION = 'ritmo-shell-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const APP_SHELL = [
   './js/models.js',
   './js/routine-editor.js',
   './js/routine-player.js',
+  './js/router.js',
   './js/storage.js',
   './js/timer-engine.js',
   './js/utils.js',
@@ -24,7 +25,9 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_VERSION).map((key) => caches.delete(key))))
-      .then(() => self.clients.claim()),
+      .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: 'window' }))
+      .then((clients) => Promise.all(clients.map((client) => client.navigate(client.url)))),
   );
 });
 

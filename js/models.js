@@ -76,6 +76,9 @@ export function createInitialState() {
     routines: [createDemoRoutine()],
     settings: {
       soundEnabled: true,
+      soundVolume: 100,
+      mainCueSound: 'classic',
+      intermediateCueSound: 'classic',
       stepTransitionSoundMs: 180,
       initialCountdown: 3,
       theme: 'system',
@@ -140,6 +143,9 @@ export function sanitizeState(candidate) {
     routines: candidate.routines.map(sanitizeRoutine).filter(Boolean).slice(0, 200),
     settings: {
       soundEnabled: settings.soundEnabled !== false,
+      soundVolume: clamp(Math.round(Number.isFinite(Number(settings.soundVolume)) ? Number(settings.soundVolume) : 100), 10, 100),
+      mainCueSound: ['classic', 'strong'].includes(settings.mainCueSound) ? settings.mainCueSound : 'classic',
+      intermediateCueSound: ['classic', 'strong'].includes(settings.intermediateCueSound) ? settings.intermediateCueSound : 'classic',
       stepTransitionSoundMs: clamp(Math.round(Number(settings.stepTransitionSoundMs) || 180), 50, 2000),
       initialCountdown: clamp(Math.round(Number(settings.initialCountdown) || 0), 0, 10),
       theme: ['system', 'light', 'dark'].includes(settings.theme) ? settings.theme : 'system',

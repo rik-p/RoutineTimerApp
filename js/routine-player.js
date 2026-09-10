@@ -143,7 +143,7 @@ export class RoutinePlayer {
       if (remaining !== lastNumber && remaining > 0) {
         lastNumber = remaining;
         this.countdownOverlay.innerHTML = `<span>Preparati</span><strong>${remaining}</strong>`;
-        playCue('countdown', this.settings.soundEnabled);
+        playCue('countdown', this.settings.soundEnabled, undefined, this.settings);
       }
       if (remaining <= 0) {
         this.countdownOverlay.hidden = true;
@@ -188,7 +188,7 @@ export class RoutinePlayer {
       if (elapsedSeconds >= signal.at && !this.firedSignals.has(signal.id)) {
         this.firedSignals.add(signal.id);
         this.showSignal(signal.label);
-        playCue('intermediate', this.settings.soundEnabled && signal.sound);
+        playCue('intermediate', this.settings.soundEnabled && signal.sound, undefined, this.settings);
       }
     });
   }
@@ -213,7 +213,7 @@ export class RoutinePlayer {
 
   playStepTransitionCue() {
     const isLastStep = this.currentStepIndex === this.routine.steps.length - 1;
-    playCue(isLastStep ? 'complete' : 'step', this.settings.soundEnabled, this.settings.stepTransitionSoundMs);
+    playCue(isLastStep ? 'complete' : 'step', this.settings.soundEnabled, this.settings.stepTransitionSoundMs, this.settings);
   }
 
   goToStep(index, animated = false) {

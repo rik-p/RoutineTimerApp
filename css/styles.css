@@ -239,6 +239,9 @@ h2 { letter-spacing: -0.025em; }
 .setting-row input[type="number"] { width: 86px; min-height: 44px; padding: 8px; border: 1px solid var(--line); border-radius: 11px; background: var(--bg); text-align: right; }
 .setting-row em { margin-left: -14px; color: var(--muted); font-size: 0.75rem; font-style: normal; pointer-events: none; }
 .setting-row select { width: auto; max-width: 140px; }
+.volume-control { display: flex; align-items: center; gap: 8px; min-width: 164px; }
+.volume-control input { width: 112px; accent-color: var(--brand-strong); }
+.volume-control output { min-width: 34px; color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; text-align: right; }
 .data-actions { display: flex; gap: 8px; margin-bottom: 12px; }
 .file-button { position: relative; cursor: pointer; }
 .file-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }

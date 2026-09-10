@@ -6,7 +6,7 @@ import { parseRouteHash, toRouteHash } from './router.js';
 import { loadState, mergeState, replaceState, resetState, saveState } from './storage.js';
 import { countSteps, downloadJson, escapeHtml, formatDate, formatDuration, readJsonFile, totalDuration } from './utils.js';
 
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 let root = document.querySelector('#app');
 const toastRegion = document.querySelector('#toast-region');
 let state = loadState();
@@ -86,7 +86,11 @@ function settingsDialogMarkup() {
         <header><div><span class="eyebrow">Preferenze</span><h2>Impostazioni</h2></div><button class="icon-button" value="close" aria-label="Chiudi">×</button></header>
         <section class="settings-section">
           <label class="setting-row"><span><strong>Suoni</strong><small>Segnali e fine step</small></span><input name="sound-enabled" type="checkbox" ${state.settings.soundEnabled ? 'checked' : ''}></label>
-          <button class="button secondary wide" value="" type="button" data-action="test-sound">Prova beep tra step</button>
+          <label class="setting-row"><span><strong>Volume avvisi</strong><small>Non modifica il volume di sistema</small></span><span class="volume-control"><input name="sound-volume" type="range" min="10" max="100" step="5" value="${state.settings.soundVolume}" aria-label="Volume avvisi"><output for="sound-volume">${state.settings.soundVolume}%</output></span></label>
+          <label class="setting-row"><span><strong>Segnale principale</strong><small>Cambio step, conto alla rovescia e fine routine</small></span><select name="main-cue-sound" aria-label="Suono segnale principale"><option value="classic" ${state.settings.mainCueSound === 'classic' ? 'selected' : ''}>Classico</option><option value="strong" ${state.settings.mainCueSound === 'strong' ? 'selected' : ''}>Deciso</option></select></label>
+          <button class="button secondary wide" value="" type="button" data-action="test-main-sound">Prova segnale principale</button>
+          <label class="setting-row"><span><strong>Segnale intermedio</strong><small>Avviso all’interno di un esercizio</small></span><select name="intermediate-cue-sound" aria-label="Suono segnale intermedio"><option value="classic" ${state.settings.intermediateCueSound === 'classic' ? 'selected' : ''}>Classico</option><option value="strong" ${state.settings.intermediateCueSound === 'strong' ? 'selected' : ''}>Deciso</option></select></label>
+          <button class="button secondary wide" value="" type="button" data-action="test-intermediate-sound">Prova segnale intermedio</button>
           <label class="setting-row"><span><strong>Beep tra step</strong><small>Durata del suono al cambio scheda</small></span><input name="step-transition-sound-ms" type="number" min="50" max="2000" step="10" inputmode="numeric" value="${state.settings.stepTransitionSoundMs}" aria-label="Durata beep tra step in millisecondi"><em>ms</em></label>
           <label class="setting-row"><span><strong>Conto alla rovescia</strong><small>Prima di iniziare</small></span><select name="initial-countdown"><option value="0" ${state.settings.initialCountdown === 0 ? 'selected' : ''}>Nessuno</option><option value="3" ${state.settings.initialCountdown === 3 ? 'selected' : ''}>3 secondi</option><option value="5" ${state.settings.initialCountdown === 5 ? 'selected' : ''}>5 secondi</option></select></label>
           <label class="setting-row"><span><strong>Aspetto</strong><small>Chiaro, scuro o sistema</small></span><select name="theme"><option value="system" ${state.settings.theme === 'system' ? 'selected' : ''}>Sistema</option><option value="light" ${state.settings.theme === 'light' ? 'selected' : ''}>Chiaro</option><option value="dark" ${state.settings.theme === 'dark' ? 'selected' : ''}>Scuro</option></select></label>
@@ -138,10 +142,10 @@ function bindHome() {
       renderHome();
     }
     if (action === 'settings') root.querySelector('#settings-dialog').showModal();
-    if (action === 'test-sound') {
+    if (action === 'test-main-sound' || action === 'test-intermediate-sound') {
       void unlockAudio().then((ready) => {
         if (ready) {
-          playCue('step', true, state.settings.stepTransitionSoundMs);
+          playCue(action === 'test-main-sound' ? 'step' : 'intermediate', true, state.settings.stepTransitionSoundMs, state.settings);
         } else {
           toast('Il browser non ha autorizzato l’audio. Riprova toccando il pulsante.');
         }
@@ -160,6 +164,12 @@ function bindHome() {
 
   const saveSetting = (event) => {
     if (event.target.name === 'sound-enabled') state.settings.soundEnabled = event.target.checked;
+    if (event.target.name === 'sound-volume') {
+      state.settings.soundVolume = Number(event.target.value);
+      event.target.nextElementSibling.textContent = `${state.settings.soundVolume}%`;
+    }
+    if (event.target.name === 'main-cue-sound') state.settings.mainCueSound = event.target.value;
+    if (event.target.name === 'intermediate-cue-sound') state.settings.intermediateCueSound = event.target.value;
     if (event.target.name === 'step-transition-sound-ms') state.settings.stepTransitionSoundMs = Number(event.target.value);
     if (event.target.name === 'initial-countdown') state.settings.initialCountdown = Number(event.target.value);
     if (event.target.name === 'theme') state.settings.theme = event.target.value;

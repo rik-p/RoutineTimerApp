@@ -38,5 +38,7 @@ if (started !== 2) throw new Error('Il segnale intermedio deve emettere due beep
 playCue('step', true, 500);
 if (Math.abs(stoppedAt.at(-1) - 0.53) > 0.001) throw new Error('La durata del beep tra step non rispetta i millisecondi configurati.');
 playCue('intermediate', true, 180, { intermediateCueSound: 'strong', soundVolume: 100 });
-if (started !== 5) throw new Error('Il segnale intermedio deciso deve emettere due beep.');
+if (started !== 4) throw new Error('Il segnale intermedio deciso deve emettere un beep.');
+playCue('step', true, 180, { mainCueSound: 'strong', soundVolume: 100 });
+if (started !== 6) throw new Error('Il segnale principale deciso deve emettere due beep.');
 print('Smoke test audio: OK');

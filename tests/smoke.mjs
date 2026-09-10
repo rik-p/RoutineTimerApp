@@ -15,8 +15,8 @@ assert(formatDuration(3661) === '1:01:01', 'Formato durata oltre un’ora non va
 assert(routineProgress(demo, 1, 0) === 60 / 900, 'Il progresso deve essere pesato sul tempo.');
 assert(sanitizeState({ schemaVersion: 1, routines: [demo], settings: {} }).routines.length === 1, 'Sanitizzazione non valida.');
 assert(sanitizeState({ schemaVersion: 1, routines: [], settings: { stepTransitionSoundMs: 9000 } }).settings.stepTransitionSoundMs === 2000, 'La durata suono deve rispettare il massimo.');
-const soundSettings = sanitizeState({ schemaVersion: 1, routines: [], settings: { soundVolume: 250, mainCueSound: 'strong', intermediateCueSound: 'strong' } }).settings;
-assert(soundSettings.soundVolume === 100 && soundSettings.mainCueSound === 'strong' && soundSettings.intermediateCueSound === 'strong', 'Le preferenze audio non vengono salvate correttamente.');
+const soundSettings = sanitizeState({ schemaVersion: 1, routines: [], settings: { soundVolume: 250, mainCueSound: 'strong', intermediateCueSound: 'steady' } }).settings;
+assert(soundSettings.soundVolume === 100 && soundSettings.mainCueSound === 'strong' && soundSettings.intermediateCueSound === 'steady', 'Le preferenze audio non vengono salvate correttamente.');
 assert(sanitizeState({ schemaVersion: 1, routines: [], settings: { soundVolume: 0 } }).settings.soundVolume === 10, 'Il volume deve rispettare il minimo.');
 let rejectedInvalidBackup = false;
 try {

@@ -71,7 +71,12 @@ export function playCue(kind, enabled = true, stepDurationMs = 180, options = {}
   if (kind === 'step') {
     const duration = Math.min(2, Math.max(0.05, Number(stepDurationMs) / 1000 || 0.18));
     const decided = mainIsStrong || mainIsSteady;
-    tone(decided ? 880 : 760, duration, 0, (decided ? 0.46 : 0.18) * volume, decided ? 'triangle' : 'sine', mainIsSteady);
+    if (decided) {
+      tone(880, Math.min(duration, 0.13), 0, 0.46 * volume, 'triangle', mainIsSteady);
+      tone(1160, Math.min(duration, 0.16), 0.15, 0.46 * volume, 'triangle', mainIsSteady);
+    } else {
+      tone(760, duration, 0, 0.18 * volume);
+    }
   }
   if (kind === 'complete') {
     const decided = mainIsStrong || mainIsSteady;

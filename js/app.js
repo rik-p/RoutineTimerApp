@@ -6,7 +6,7 @@ import { parseRouteHash, toRouteHash } from './router.js';
 import { loadState, mergeState, replaceState, resetState, saveState } from './storage.js';
 import { countSteps, downloadJson, escapeHtml, formatDate, formatDuration, readJsonFile, totalDuration } from './utils.js';
 
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '1.3.1';
 let root = document.querySelector('#app');
 const toastRegion = document.querySelector('#toast-region');
 let state = loadState();

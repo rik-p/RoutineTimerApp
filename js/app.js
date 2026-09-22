@@ -6,7 +6,7 @@ import { parseRouteHash, toRouteHash } from './router.js';
 import { loadState, mergeState, replaceState, resetState, saveState } from './storage.js';
 import { countSteps, downloadJson, escapeHtml, formatDate, formatDuration, readJsonFile, totalDuration } from './utils.js';
 
-const APP_VERSION = '1.3.3';
+const APP_VERSION = '1.4.0';
 let root = document.querySelector('#app');
 const toastRegion = document.querySelector('#toast-region');
 let state = loadState();
@@ -20,7 +20,10 @@ function resetViewRoot() {
 }
 
 function applyTheme() {
-  document.documentElement.dataset.theme = state.settings.theme;
+  document.documentElement.dataset.theme = state.settings.theme === 'system'
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : state.settings.theme;
+  document.documentElement.dataset.palette = state.settings.palette;
 }
 
 function updateState(nextState) {
@@ -93,6 +96,7 @@ function settingsDialogMarkup() {
           <button class="button secondary wide" value="" type="button" data-action="test-intermediate-sound">Prova segnale intermedio</button>
           <label class="setting-row"><span><strong>Beep tra step</strong><small>Durata del suono al cambio scheda</small></span><input name="step-transition-sound-ms" type="number" min="50" max="2000" step="10" inputmode="numeric" value="${state.settings.stepTransitionSoundMs}" aria-label="Durata beep tra step in millisecondi"><em>ms</em></label>
           <label class="setting-row"><span><strong>Conto alla rovescia</strong><small>Prima di iniziare</small></span><select name="initial-countdown"><option value="0" ${state.settings.initialCountdown === 0 ? 'selected' : ''}>Nessuno</option><option value="3" ${state.settings.initialCountdown === 3 ? 'selected' : ''}>3 secondi</option><option value="5" ${state.settings.initialCountdown === 5 ? 'selected' : ''}>5 secondi</option></select></label>
+          <label class="setting-row"><span><strong>Palette</strong><small>Colori dell’app</small></span><select name="palette"><option value="sage" ${state.settings.palette === 'sage' ? 'selected' : ''}>Verde e panna</option><option value="bordeaux" ${state.settings.palette === 'bordeaux' ? 'selected' : ''}>Bordeaux e panna</option><option value="midnight" ${state.settings.palette === 'midnight' ? 'selected' : ''}>Blu notte e sabbia</option><option value="plum" ${state.settings.palette === 'plum' ? 'selected' : ''}>Prugna e rosa cipria</option></select></label>
           <label class="setting-row"><span><strong>Aspetto</strong><small>Chiaro, scuro o sistema</small></span><select name="theme"><option value="system" ${state.settings.theme === 'system' ? 'selected' : ''}>Sistema</option><option value="light" ${state.settings.theme === 'light' ? 'selected' : ''}>Chiaro</option><option value="dark" ${state.settings.theme === 'dark' ? 'selected' : ''}>Scuro</option></select></label>
         </section>
         <section class="settings-section"><h3>Backup dei dati</h3><div class="data-actions"><button class="button secondary" value="" type="button" data-action="export">Esporta JSON</button><label class="button secondary file-button">Importa JSON<input id="import-file" type="file" accept="application/json,.json"></label></div><button class="text-button danger-text" value="" type="button" data-action="reset">Ripristina dati iniziali</button></section>
@@ -172,6 +176,7 @@ function bindHome() {
     if (event.target.name === 'intermediate-cue-sound') state.settings.intermediateCueSound = event.target.value;
     if (event.target.name === 'step-transition-sound-ms') state.settings.stepTransitionSoundMs = Number(event.target.value);
     if (event.target.name === 'initial-countdown') state.settings.initialCountdown = Number(event.target.value);
+    if (event.target.name === 'palette') state.settings.palette = event.target.value;
     if (event.target.name === 'theme') state.settings.theme = event.target.value;
     if (event.target.id !== 'import-file') updateState(state);
   };
@@ -309,6 +314,9 @@ function showUpdatePrompt(registration) {
 }
 
 applyTheme();
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (state.settings.theme === 'system') applyTheme();
+});
 installAudioRecovery();
 if (!location.hash) history.replaceState(null, '', '#/home');
 router();

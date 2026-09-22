@@ -13,6 +13,7 @@
   --accent: #d9874d;
   --danger: #b84343;
   --shadow: 0 16px 45px rgba(35, 47, 41, 0.08);
+  --on-brand: #fff;
   --radius: 24px;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   font-synthesis: none;
@@ -33,6 +34,7 @@
   --accent: #e6a170;
   --danger: #ee8585;
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+  --on-brand: #132018;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -53,6 +55,18 @@
     --shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
   }
 }
+
+/* Palette chiare. La tonalità rimane indipendente dalla scelta chiaro/scuro. */
+:root[data-palette="sage"] { --bg: #f5f2eb; --bg-deep: #e9e4da; --surface: rgba(255, 255, 255, 0.82); --surface-solid: #fffdf9; --text: #17221d; --muted: #657169; --line: rgba(31, 55, 45, 0.12); --brand: #315c4b; --brand-strong: #24483a; --brand-soft: #dce9df; --accent: #d9874d; --danger: #b84343; --shadow: 0 16px 45px rgba(35, 47, 41, 0.08); --on-brand: #fff; }
+:root[data-palette="bordeaux"] { --bg: #f7f0e8; --bg-deep: #ead9cc; --surface: rgba(255, 252, 248, 0.84); --surface-solid: #fffaf5; --text: #30191d; --muted: #776266; --line: rgba(90, 31, 42, 0.13); --brand: #7e3040; --brand-strong: #662333; --brand-soft: #f0dce0; --accent: #bf7a45; --danger: #b53e4a; --shadow: 0 16px 45px rgba(69, 29, 38, 0.1); --on-brand: #fff; }
+:root[data-palette="midnight"] { --bg: #f2f0e8; --bg-deep: #ded9ca; --surface: rgba(255, 254, 249, 0.84); --surface-solid: #fffdf7; --text: #17263b; --muted: #5f6e7e; --line: rgba(26, 57, 91, 0.13); --brand: #2e5c87; --brand-strong: #244d73; --brand-soft: #dce8f1; --accent: #bc7e3e; --danger: #b3434f; --shadow: 0 16px 45px rgba(28, 54, 82, 0.1); --on-brand: #fff; }
+:root[data-palette="plum"] { --bg: #f7eff2; --bg-deep: #e9d8e0; --surface: rgba(255, 251, 253, 0.84); --surface-solid: #fffaff; --text: #321d35; --muted: #756272; --line: rgba(86, 42, 91, 0.13); --brand: #774b78; --brand-strong: #603861; --brand-soft: #eddff0; --accent: #c17281; --danger: #ad4156; --shadow: 0 16px 45px rgba(67, 37, 70, 0.1); --on-brand: #fff; }
+
+/* Palette scure, usate sia con “Scuro” sia con “Sistema” su dispositivo scuro. */
+:root[data-palette="sage"][data-theme="dark"] { --bg: #111714; --bg-deep: #0b100d; --surface: rgba(28, 38, 33, 0.88); --surface-solid: #1b2520; --text: #f2f4f1; --muted: #a3aea7; --line: rgba(229, 240, 233, 0.11); --brand: #8eb9a6; --brand-strong: #a7cbb9; --brand-soft: #263e33; --accent: #e6a170; --danger: #ee8585; --shadow: 0 18px 50px rgba(0, 0, 0, 0.2); --on-brand: #132018; }
+:root[data-palette="bordeaux"][data-theme="dark"] { --bg: #1b1014; --bg-deep: #11090c; --surface: rgba(48, 25, 31, 0.9); --surface-solid: #2b1a20; --text: #f8efef; --muted: #c3a9ad; --line: rgba(249, 226, 230, 0.12); --brand: #d99aa6; --brand-strong: #e7b4bd; --brand-soft: #4b2932; --accent: #e5a46e; --danger: #f08b99; --shadow: 0 18px 50px rgba(0, 0, 0, 0.24); --on-brand: #35131b; }
+:root[data-palette="midnight"][data-theme="dark"] { --bg: #0e1622; --bg-deep: #080d15; --surface: rgba(24, 38, 57, 0.9); --surface-solid: #172638; --text: #f0f5fa; --muted: #a8b6c6; --line: rgba(224, 236, 248, 0.12); --brand: #91bbdf; --brand-strong: #afcce6; --brand-soft: #243c57; --accent: #e6ad6e; --danger: #ef8c98; --shadow: 0 18px 50px rgba(0, 0, 0, 0.25); --on-brand: #132b43; }
+:root[data-palette="plum"][data-theme="dark"] { --bg: #1b111d; --bg-deep: #110a13; --surface: rgba(48, 29, 52, 0.9); --surface-solid: #2d2031; --text: #f7f0f7; --muted: #c2acc2; --line: rgba(244, 229, 244, 0.12); --brand: #d1abd0; --brand-strong: #dfbfdd; --brand-soft: #49324e; --accent: #e49aa6; --danger: #f08b9e; --shadow: 0 18px 50px rgba(0, 0, 0, 0.24); --on-brand: #3d2442; }
 
 * { box-sizing: border-box; }
 
@@ -91,7 +105,7 @@ h2 { letter-spacing: -0.025em; }
 .button, .icon-button, .mini-button, .drag-handle, .control-button, .restart-button, .text-button { min-height: 44px; border: 0; border-radius: 14px; font-weight: 700; }
 .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; text-decoration: none; }
 .button.primary { color: #fff; background: var(--brand-strong); box-shadow: 0 8px 20px color-mix(in srgb, var(--brand-strong) 24%, transparent); }
-:root[data-theme="dark"] .button.primary { color: #132018; }
+.button.primary { color: var(--on-brand); }
 .button.secondary { border: 1px solid var(--line); background: var(--surface-solid); }
 .button.ghost { color: var(--brand); background: transparent; }
 .button.wide { width: 100%; }

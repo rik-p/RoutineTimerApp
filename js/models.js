@@ -82,6 +82,7 @@ export function createInitialState() {
       stepTransitionSoundMs: 180,
       initialCountdown: 3,
       theme: 'system',
+      palette: 'sage',
     },
   };
 }
@@ -149,6 +150,7 @@ export function sanitizeState(candidate) {
       stepTransitionSoundMs: clamp(Math.round(Number(settings.stepTransitionSoundMs) || 180), 50, 2000),
       initialCountdown: clamp(Math.round(Number(settings.initialCountdown) || 0), 0, 10),
       theme: ['system', 'light', 'dark'].includes(settings.theme) ? settings.theme : 'system',
+      palette: ['sage', 'bordeaux', 'midnight', 'plum'].includes(settings.palette) ? settings.palette : 'sage',
     },
   };
 }

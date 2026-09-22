@@ -34,18 +34,16 @@ export function installAudioRecovery() {
   if (recoveryListenersInstalled || typeof document === 'undefined') return;
   recoveryListenersInstalled = true;
 
-  // Il ritorno da lock/background non è sempre considerato un gesto utente da
-  // Safari. Lo proviamo subito e lo riproviamo sul primo tocco nell'app.
-  const restore = () => { void unlockAudio(); };
+  // Non creare mai il contesto al caricamento: su iPhone deve nascere dal
+  // primo tap, altrimenti Safari può mantenerlo silenzioso per tutta la sessione.
+  const restore = () => {
+    if (context && context.state !== 'running') void unlockAudio();
+  };
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') restore();
   });
   window.addEventListener('pageshow', restore);
   window.addEventListener('focus', restore);
-  document.addEventListener('pointerdown', restore, { capture: true, passive: true });
-  document.addEventListener('touchstart', restore, { capture: true, passive: true });
-  document.addEventListener('click', restore, { capture: true });
-  document.addEventListener('keydown', restore, { capture: true });
 }
 
 function tone(frequency, duration = 0.12, delay = 0, volume = 0.18, waveform = 'sine', steady = false) {

@@ -1,4 +1,6 @@
 let context;
+let resumePromise;
+let recoveryListenersInstalled = false;
 
 function getAudioContextConstructor() {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -11,13 +13,39 @@ export async function unlockAudio() {
   try {
     if (!context || context.state === 'closed') context = new AudioContext();
     const audioContext = context;
-    if (audioContext.state === 'suspended') await audioContext.resume();
-    if (audioContext.state === 'interrupted') await audioContext.resume();
+    if (audioContext.state !== 'running') {
+      // iOS può sospendere o interrompere il contesto quando lo schermo si blocca.
+      // Condividiamo il tentativo in corso per non inviare più resume simultanei.
+      if (!resumePromise) {
+        resumePromise = Promise.resolve(audioContext.resume()).finally(() => {
+          resumePromise = null;
+        });
+      }
+      await resumePromise;
+    }
     return audioContext.state === 'running';
   } catch (error) {
     console.warn('Audio non disponibile in questo momento.', error);
     return false;
   }
+}
+
+export function installAudioRecovery() {
+  if (recoveryListenersInstalled || typeof document === 'undefined') return;
+  recoveryListenersInstalled = true;
+
+  // Il ritorno da lock/background non è sempre considerato un gesto utente da
+  // Safari. Lo proviamo subito e lo riproviamo sul primo tocco nell'app.
+  const restore = () => { void unlockAudio(); };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') restore();
+  });
+  window.addEventListener('pageshow', restore);
+  window.addEventListener('focus', restore);
+  document.addEventListener('pointerdown', restore, { capture: true, passive: true });
+  document.addEventListener('touchstart', restore, { capture: true, passive: true });
+  document.addEventListener('click', restore, { capture: true });
+  document.addEventListener('keydown', restore, { capture: true });
 }
 
 function tone(frequency, duration = 0.12, delay = 0, volume = 0.18, waveform = 'sine', steady = false) {
@@ -49,6 +77,14 @@ function soundOptions(options = {}) {
 
 export function playCue(kind, enabled = true, stepDurationMs = 180, options = {}) {
   if (!enabled) return;
+  if (!context || context.state !== 'running') {
+    // Se il segnale coincide con il primo evento dopo il risveglio, emettilo
+    // appena il browser ha riattivato l'audio invece di perderlo in silenzio.
+    void unlockAudio().then((ready) => {
+      if (ready) playCue(kind, enabled, stepDurationMs, options);
+    });
+    return;
+  }
   const { mainCueSound, intermediateCueSound, volume } = soundOptions(options);
   const mainIsStrong = mainCueSound === 'strong';
   const intermediateIsStrong = intermediateCueSound === 'strong';

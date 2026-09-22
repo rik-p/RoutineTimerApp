@@ -14,6 +14,10 @@ export class RoutinePlayer {
     this.startedAt = null;
     this.overlayTimeout = null;
     this.countdownTimeout = null;
+    this.wakeLock = null;
+    this.onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && this.isActive) void this.requestWakeLock();
+    };
     this.engine = new TimerEngine({
       onTick: (snapshot) => this.updateTimer(snapshot),
       onComplete: () => this.advanceAutomatically(),
@@ -33,6 +37,8 @@ export class RoutinePlayer {
     this.renderPlayer();
     this.bindControls();
     this.startCountdown();
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+    void this.requestWakeLock();
   }
 
   emptyMarkup() {
@@ -167,6 +173,33 @@ export class RoutinePlayer {
     this.announcer.textContent = `${step.type === 'pause' ? 'Pausa' : 'Esercizio'}: ${step.name}`;
     this.engine.start(step.duration);
     this.updateToggleControl();
+    void this.requestWakeLock();
+  }
+
+  async requestWakeLock() {
+    if (this.wakeLock || !this.isActive || document.visibilityState !== 'visible' || !navigator.wakeLock?.request) return;
+    try {
+      const lock = await navigator.wakeLock.request('screen');
+      // La routine potrebbe essere terminata durante l'attesa della promessa.
+      if (!this.isActive) {
+        await lock.release();
+        return;
+      }
+      this.wakeLock = lock;
+      lock.addEventListener('release', () => {
+        if (this.wakeLock === lock) this.wakeLock = null;
+      }, { once: true });
+    } catch (error) {
+      // Non tutti i Safari/iOS supportano Screen Wake Lock: il recupero audio
+      // continua comunque a funzionare dopo lo sblocco.
+      console.info('Screen Wake Lock non disponibile.', error);
+    }
+  }
+
+  releaseWakeLock() {
+    const lock = this.wakeLock;
+    this.wakeLock = null;
+    if (lock) void lock.release();
   }
 
   updateTimer(snapshot) {
@@ -283,6 +316,8 @@ export class RoutinePlayer {
 
   completeRoutine() {
     this.engine.stop();
+    this.releaseWakeLock();
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.status = 'completed';
     const actualSeconds = this.startedAt ? (Date.now() - this.startedAt) / 1000 : totalDuration(this.routine);
     this.root.innerHTML = `
@@ -305,6 +340,8 @@ export class RoutinePlayer {
     clearTimeout(this.overlayTimeout);
     this.hideSignal();
     clearTimeout(this.countdownTimeout);
+    this.releaseWakeLock();
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.status = 'idle';
   }
 }

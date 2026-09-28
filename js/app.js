@@ -6,7 +6,7 @@ import { parseRouteHash, toRouteHash } from './router.js';
 import { loadState, mergeState, replaceState, resetState, saveState } from './storage.js';
 import { countSteps, downloadJson, escapeHtml, formatDate, formatDuration, readJsonFile, totalDuration } from './utils.js';
 
-const APP_VERSION = '1.4.1';
+const APP_VERSION = '1.4.2';
 let root = document.querySelector('#app');
 const toastRegion = document.querySelector('#toast-region');
 let state = loadState();
@@ -55,7 +55,7 @@ function renderHome() {
     <main class="shell home-shell">
       <header class="hero">
         <div class="brand"><span class="brand-mark" aria-hidden="true">◷</span><span>Ritmo</span></div>
-        <button class="icon-button" data-action="settings" aria-label="Apri impostazioni">⌁</button>
+        <button class="icon-button" data-action="settings" aria-label="Apri impostazioni" title="Impostazioni">⚙</button>
         <div class="hero-copy"><span class="eyebrow">Il tuo tempo, con calma</span><h1>Pronto per la prossima routine?</h1><p>Crea sequenze, segui il ritmo e lascia che il timer pensi al resto.</p></div>
       </header>
       <section class="home-heading"><div><span class="eyebrow">Le tue routine</span><h2>${state.routines.length ? 'Scegli da dove iniziare' : 'Crea la prima routine'}</h2></div><button class="button primary" data-action="create">+ Nuova</button></section>

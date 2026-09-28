@@ -37,6 +37,104 @@ export function createRoutine(overrides = {}) {
   };
 }
 
+export const ROUTINE_TEMPLATES = [
+  {
+    id: 'stretching-completo',
+    name: 'Stretching completo',
+    description: '15 minuti per mobilizzare tutto il corpo.',
+    duration: 15 * 60,
+  },
+  {
+    id: 'tabata-4-minuti',
+    name: 'Tabata',
+    description: '8 round da 20 secondi di lavoro e 10 di recupero.',
+    duration: 4 * 60,
+  },
+  {
+    id: 'stretching-10-minuti',
+    name: 'Stretching 10 minuti',
+    description: 'Sequenza essenziale, con cambi di posizione guidati.',
+    duration: 10 * 60,
+  },
+];
+
+function exerciseWithSideChange(name, duration, at = Math.floor(duration / 2), notes = '') {
+  return createExercise({
+    name,
+    duration,
+    notes,
+    intermediateSignals: [{ id: uid(), at, label: 'Cambia lato', sound: true }],
+  });
+}
+
+function createCompleteStretchingTemplate() {
+  return createRoutine({
+    name: 'Stretching completo — 15 min',
+    description: 'Una sequenza completa per mobilizzare tutto il corpo.',
+    steps: [
+      createExercise({ name: 'gatto-mucca', duration: 60 }),
+      createExercise({ name: 'posizione del bambino', duration: 60 }),
+      createPause({ name: 'Pausa', duration: 10 }),
+      exerciseWithSideChange('affondo-distensione dx', 60),
+      exerciseWithSideChange('affondo-distensione sx', 60),
+      createPause({ name: 'Pausa', duration: 5 }),
+      createExercise({ name: 'farfalla', duration: 60 }),
+      createPause({ name: 'Pausa', duration: 5 }),
+      exerciseWithSideChange('figura 4', 90, 45),
+      exerciseWithSideChange('torsione della colonna', 90, 45),
+      createPause({ name: 'Pausa', duration: 10 }),
+      createExercise({ name: 'piegamenti alle punte', duration: 60 }),
+      exerciseWithSideChange('polpaccio alla parete', 60),
+      exerciseWithSideChange('pettorale alla parete', 60),
+      exerciseWithSideChange('braccio trasversale', 60),
+      exerciseWithSideChange('tricipite sulla testa', 60),
+      exerciseWithSideChange('inclinazione laterale collo', 60),
+      createExercise({ name: 'rotazione collo', duration: 30 }),
+    ],
+  });
+}
+
+function createTabataTemplate() {
+  const steps = Array.from({ length: 8 }, (_, index) => [
+    createExercise({ name: `Lavoro — round ${index + 1}`, duration: 20, notes: 'Mantieni un ritmo intenso e controllato.' }),
+    createPause({ name: 'Recupero', duration: 10 }),
+  ]).flat();
+  return createRoutine({
+    name: 'Tabata — 4 minuti',
+    description: '8 round: 20 secondi di lavoro, 10 secondi di recupero.',
+    steps,
+  });
+}
+
+function createShortStretchingTemplate() {
+  return createRoutine({
+    name: 'Stretching mattutino — 10 minuti',
+    description: 'Routine essenziale da 10 minuti; pause solo per cambiare tra terra e posizione in piedi.',
+    steps: [
+      createExercise({ name: 'gatto-mucca', duration: 60, notes: 'Movimento lento e controllato.' }),
+      createExercise({ name: 'posizione del bambino', duration: 60, notes: 'Respira profondamente.' }),
+      createPause({ name: 'Alzati in piedi', duration: 5 }),
+      createExercise({ name: 'affondo-distensione dx', duration: 60, notes: 'Affondo con gamba destra avanti; aggiungi la distensione in modo controllato.' }),
+      createExercise({ name: 'affondo-distensione sx', duration: 60, notes: 'Affondo con gamba sinistra avanti; aggiungi la distensione in modo controllato.' }),
+      createPause({ name: 'Scendi a terra', duration: 5 }),
+      exerciseWithSideChange('figura 4', 60, 30),
+      exerciseWithSideChange('torsione della colonna', 60, 30),
+      createPause({ name: 'Alzati in piedi', duration: 10 }),
+      createExercise({ name: 'piegamenti alle punte', duration: 40, notes: 'Ginocchia leggermente flesse se necessario.' }),
+      exerciseWithSideChange('polpaccio alla parete', 60, 30),
+      exerciseWithSideChange('pettorale alla parete', 60, 30),
+      exerciseWithSideChange('inclinazione laterale collo', 60, 30, 'Movimento molto delicato, senza tirare.'),
+    ],
+  });
+}
+
+export function createRoutineFromTemplate(templateId) {
+  if (templateId === 'stretching-completo') return createCompleteStretchingTemplate();
+  if (templateId === 'tabata-4-minuti') return createTabataTemplate();
+  if (templateId === 'stretching-10-minuti') return createShortStretchingTemplate();
+  return null;
+}
+
 function demoExercise(name, duration, signalAt) {
   return createExercise({
     name,

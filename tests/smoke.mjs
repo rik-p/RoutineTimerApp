@@ -1,4 +1,4 @@
-import { createDemoRoutine, createInitialState, sanitizeState } from '../js/models.js';
+import { createDemoRoutine, createInitialState, createRoutineFromTemplate, sanitizeState } from '../js/models.js';
 import { loadState, saveState } from '../js/storage.js';
 import { TimerEngine } from '../js/timer-engine.js';
 import { parseRouteHash, toRouteHash } from '../js/router.js';
@@ -11,6 +11,9 @@ function assert(condition, message) {
 const demo = createDemoRoutine();
 assert(demo.steps.length === 14, 'La demo deve avere 14 step.');
 assert(totalDuration(demo) === 900, 'La demo deve durare 15 minuti.');
+assert(totalDuration(createRoutineFromTemplate('stretching-completo')) === 900, 'Il template stretching completo deve durare 15 minuti.');
+assert(totalDuration(createRoutineFromTemplate('tabata-4-minuti')) === 240, 'Il template Tabata deve durare 4 minuti.');
+assert(totalDuration(createRoutineFromTemplate('stretching-10-minuti')) === 600, 'Il template stretching breve deve durare 10 minuti.');
 assert(formatDuration(3661) === '1:01:01', 'Formato durata oltre un’ora non valido.');
 assert(routineProgress(demo, 1, 0) === 60 / 900, 'Il progresso deve essere pesato sul tempo.');
 assert(sanitizeState({ schemaVersion: 1, routines: [demo], settings: {} }).routines.length === 1, 'Sanitizzazione non valida.');

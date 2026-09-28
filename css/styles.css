@@ -243,6 +243,21 @@ h2 { letter-spacing: -0.025em; }
 .settings-dialog::backdrop { background: rgba(8, 14, 11, 0.55); backdrop-filter: blur(5px); }
 .settings-dialog header { display: flex; align-items: center; justify-content: space-between; padding: 22px; border-bottom: 1px solid var(--line); }
 .settings-dialog h2 { margin: 0; }
+.create-dialog { width: min(560px, calc(100% - 28px)); max-height: calc(100dvh - 30px); padding: 0; overflow: auto; border: 1px solid var(--line); border-radius: 26px; color: var(--text); background: var(--surface-solid); box-shadow: var(--shadow); }
+.create-dialog::backdrop { background: rgba(8, 14, 11, 0.55); backdrop-filter: blur(5px); }
+.create-dialog header { display: flex; align-items: center; justify-content: space-between; padding: 22px; border-bottom: 1px solid var(--line); }
+.create-dialog h2 { margin: 0; }
+.create-options { display: grid; gap: 10px; padding: 18px 22px 22px; }
+.create-option { display: flex; width: 100%; align-items: center; gap: 13px; padding: 15px; border: 1px solid var(--line); border-radius: 17px; color: inherit; text-align: left; background: var(--surface); }
+.create-option:hover { border-color: var(--brand); background: var(--brand-soft); }
+.create-option > span:nth-child(2) { display: grid; gap: 4px; }
+.create-option strong, .create-option small { display: block; }
+.create-option small { color: var(--muted); line-height: 1.35; }
+.create-option-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 13px; color: var(--brand); background: var(--brand-soft); font-size: 1.3rem; font-weight: 800; }
+.template-heading { margin: 13px 0 1px; }
+.template-heading .eyebrow { margin-bottom: 2px; }
+.template-heading p { margin: 0; color: var(--muted); font-size: 0.86rem; }
+.template-option em { margin-left: auto; color: var(--brand); font-size: 0.8rem; font-style: normal; font-weight: 800; white-space: nowrap; }
 .settings-section { padding: 18px 22px; border-bottom: 1px solid var(--line); }
 .settings-section h3 { font-size: 0.9rem; }
 .app-version { margin: 0; padding: 14px 22px; color: var(--muted); font-size: 0.72rem; text-align: center; }

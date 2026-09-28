@@ -1,4 +1,4 @@
-import { cloneRoutine, createRoutine, sanitizeState } from './models.js';
+import { cloneRoutine, createRoutine, createRoutineFromTemplate, ROUTINE_TEMPLATES, sanitizeState } from './models.js';
 import { installAudioRecovery, playCue, unlockAudio } from './audio.js';
 import { RoutineEditor } from './routine-editor.js';
 import { RoutinePlayer } from './routine-player.js';
@@ -6,7 +6,7 @@ import { parseRouteHash, toRouteHash } from './router.js';
 import { loadState, mergeState, replaceState, resetState, saveState } from './storage.js';
 import { countSteps, downloadJson, escapeHtml, formatDate, formatDuration, readJsonFile, totalDuration } from './utils.js';
 
-const APP_VERSION = '1.4.2';
+const APP_VERSION = '1.5.0';
 let root = document.querySelector('#app');
 const toastRegion = document.querySelector('#toast-region');
 let state = loadState();
@@ -65,8 +65,23 @@ function renderHome() {
       ${state.routines.length ? '' : '<div class="empty-state surface"><h2>Nessuna routine salvata</h2><p>Parti da una sequenza vuota e adattala ai tuoi tempi.</p><button class="button primary" data-action="create">Crea routine</button></div>'}
       <footer class="app-footer"><span>Funziona offline</span><span>I dati restano sul dispositivo</span></footer>
     </main>
-    ${settingsDialogMarkup()}`;
+    ${settingsDialogMarkup()}
+    ${createDialogMarkup()}`;
   bindHome();
+}
+
+function createDialogMarkup() {
+  return `
+    <dialog id="create-dialog" class="create-dialog">
+      <form method="dialog">
+        <header><div><span class="eyebrow">Crea routine</span><h2>Da dove vuoi iniziare?</h2></div><button class="icon-button" value="close" aria-label="Chiudi">×</button></header>
+        <div class="create-options">
+        <button class="create-option" type="button" data-action="create-empty"><span class="create-option-icon" aria-hidden="true">+</span><span><strong>Nuova routine</strong><small>Parti da una sequenza vuota.</small></span></button>
+        <div class="template-heading"><span class="eyebrow">Template</span><p>Scegli una base pronta da personalizzare.</p></div>
+        ${ROUTINE_TEMPLATES.map((template) => `<button class="create-option template-option" type="button" data-action="create-template" data-template-id="${template.id}"><span class="create-option-icon" aria-hidden="true">◷</span><span><strong>${escapeHtml(template.name)}</strong><small>${escapeHtml(template.description)}</small></span><em>${formatDuration(template.duration)}</em></button>`).join('')}
+        </div>
+      </form>
+    </dialog>`;
 }
 
 function routineCardMarkup(routine) {
@@ -113,7 +128,11 @@ function bindHome() {
     const card = button.closest('[data-routine-id]');
     const routine = state.routines.find((item) => item.id === card?.dataset.routineId);
     if (action === 'create') {
-      const created = createRoutine();
+      root.querySelector('#create-dialog').showModal();
+    }
+    if (action === 'create-empty' || action === 'create-template') {
+      const created = action === 'create-template' ? createRoutineFromTemplate(button.dataset.templateId) : createRoutine();
+      if (!created) return;
       updateState({ ...state, routines: [...state.routines, created] });
       go(`edit/${created.id}`);
     }

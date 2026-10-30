@@ -1,8 +1,9 @@
 import { createExercise, createPause, duplicateStep, normalizeDurationParts } from './models.js';
-import { debounce, deepClone, escapeHtml, formatDuration, totalDuration, uid } from './utils.js';
+import { debounce, durationLabel, isRepetitionStep, deepClone, escapeHtml, uid } from './utils.js';
 
 export class RoutineEditor {
-  constructor(root, routine, callbacks = {}) {
+  constructor(root, routine, callbacks = {}, settings = {}) {
+    this.settings = settings;
     this.root = root;
     this.routine = deepClone(routine);
     this.callbacks = callbacks;
@@ -27,7 +28,7 @@ export class RoutineEditor {
         <section class="editor-heading surface">
           <label class="field grow"><span>Nome routine</span><input name="routine-name" maxlength="120" required value="${escapeHtml(this.routine.name)}"></label>
           <label class="field grow"><span>Descrizione <small>opzionale</small></span><textarea name="routine-description" maxlength="1000" rows="2">${escapeHtml(this.routine.description)}</textarea></label>
-          <div class="total-badge"><span>Durata totale</span><strong id="editor-total">${formatDuration(totalDuration(this.routine))}</strong></div>
+          <div class="total-badge"><span>Durata totale / stimata</span><strong id="editor-total">${durationLabel(this.routine, this.settings)}</strong></div>
         </section>
 
         <div class="editor-section-heading"><div><span class="eyebrow">Sequenza</span><h1>I tuoi step</h1></div><span id="step-count" class="step-count">${this.routine.steps.length} step</span></div>
@@ -60,13 +61,14 @@ export class RoutineEditor {
         </div>
         <div class="step-fields">
           <label class="field grow"><span>${step.type === 'pause' ? 'Etichetta' : 'Nome esercizio'}</span><input data-field="name" maxlength="120" required value="${escapeHtml(step.name)}"></label>
-          <fieldset class="duration-field"><legend>Durata</legend><label><input data-field="minutes" type="number" min="0" max="1440" inputmode="numeric" value="${minutes}"><span>min</span></label><label><input data-field="seconds" type="number" min="0" max="59" inputmode="numeric" value="${seconds}"><span>sec</span></label></fieldset>
+          ${step.type === 'exercise' ? `<label class="field"><span>Modalit\u00e0</span><select data-field="mode"><option value="timed" ${!isRepetitionStep(step) ? 'selected' : ''}>A tempo</option><option value="repetitions" ${isRepetitionStep(step) ? 'selected' : ''}>A ripetizioni</option></select></label>` : ''}
+          ${isRepetitionStep(step) ? `<label class="field"><span>Ripetizioni</span><input data-field="repetitions" type="number" min="1" max="10000" step="1" inputmode="numeric" value="${step.repetitions}"></label>` : `<fieldset class="duration-field"><legend>Durata</legend><label><input data-field="minutes" type="number" min="0" max="1440" inputmode="numeric" value="${minutes}"><span>min</span></label><label><input data-field="seconds" type="number" min="0" max="59" inputmode="numeric" value="${seconds}"><span>sec</span></label></fieldset>`}
           ${step.type === 'exercise' ? `
             <label class="field full"><span>Note <small>opzionali</small></span><textarea data-field="notes" maxlength="1000" rows="2">${escapeHtml(step.notes)}</textarea></label>
-            <section class="signals-editor full">
+            ${!isRepetitionStep(step) ? `<section class="signals-editor full">
               <div class="signals-heading"><div><strong>Segnali intermedi</strong><small>Non interrompono il timer</small></div><button class="text-button" data-action="add-signal">+ Segnale</button></div>
               <div class="signal-list">${step.intermediateSignals.map((signal) => this.signalMarkup(signal)).join('')}</div>
-            </section>` : ''}
+            </section>` : ''}` : ''}
         </div>
       </article>`;
   }
@@ -145,6 +147,19 @@ export class RoutineEditor {
     const step = this.routine.steps.find((item) => item.id === card.dataset.stepId);
     if (!step) return;
     if (input.dataset.field === 'name') step.name = input.value.trimStart().slice(0, 120) || (step.type === 'pause' ? 'Pausa' : 'Esercizio');
+    if (input.dataset.field === 'mode') {
+      step.mode = input.value === 'repetitions' ? 'repetitions' : 'timed';
+      step.repetitions ||= 10;
+      this.changed(true);
+      return;
+    }
+    if (input.dataset.field === 'repetitions') {
+      const value = Number(input.value);
+      const valid = Number.isInteger(value) && value >= 1 && value <= 10000;
+      input.setCustomValidity(valid ? '' : 'Inserisci da 1 a 10000 ripetizioni.');
+      if (!valid) return;
+      step.repetitions = value;
+    }
     if (input.dataset.field === 'notes') step.notes = input.value.slice(0, 1000);
     if (['minutes', 'seconds'].includes(input.dataset.field)) {
       const minutesInput = card.querySelector('[data-field="minutes"]');
@@ -201,7 +216,7 @@ export class RoutineEditor {
 
   updateSummary() {
     const total = this.root.querySelector('#editor-total');
-    if (total) total.textContent = formatDuration(totalDuration(this.routine));
+    if (total) total.textContent = durationLabel(this.routine, this.settings);
   }
 
   save() {

@@ -8,6 +8,8 @@ export function createExercise(overrides = {}) {
     type: 'exercise',
     name: 'Nuovo esercizio',
     duration: 60,
+    mode: 'timed',
+    repetitions: 10,
     notes: '',
     intermediateSignals: [],
     ...overrides,
@@ -178,6 +180,7 @@ export function createInitialState() {
       mainCueSound: 'classic',
       intermediateCueSound: 'classic',
       stepTransitionSoundMs: 180,
+      secondsPerRepetition: 1,
       initialCountdown: 3,
       theme: 'system',
       palette: 'sage',
@@ -207,6 +210,8 @@ function sanitizeStep(step) {
     duration,
   };
   if (step.type === 'exercise') {
+    base.mode = step.mode === 'repetitions' ? 'repetitions' : 'timed';
+    base.repetitions = clamp(Math.round(Number(step.repetitions) || 10), 1, 10000);
     base.notes = String(step.notes || '').slice(0, 1000);
     base.intermediateSignals = Array.isArray(step.intermediateSignals)
       ? step.intermediateSignals.map((item) => sanitizeSignal(item, duration)).filter(Boolean).sort((a, b) => a.at - b.at)
@@ -246,6 +251,7 @@ export function sanitizeState(candidate) {
       mainCueSound: ['classic', 'strong', 'steady'].includes(settings.mainCueSound) ? settings.mainCueSound : 'classic',
       intermediateCueSound: ['classic', 'strong', 'steady'].includes(settings.intermediateCueSound) ? settings.intermediateCueSound : 'classic',
       stepTransitionSoundMs: clamp(Math.round(Number(settings.stepTransitionSoundMs) || 180), 50, 2000),
+      secondsPerRepetition: clamp(Number(settings.secondsPerRepetition) || 1, 0.1, 60),
       initialCountdown: clamp(Math.round(Number(settings.initialCountdown) || 0), 0, 10),
       theme: ['system', 'light', 'dark'].includes(settings.theme) ? settings.theme : 'system',
       palette: ['sage', 'bordeaux', 'midnight', 'plum'].includes(settings.palette) ? settings.palette : 'sage',

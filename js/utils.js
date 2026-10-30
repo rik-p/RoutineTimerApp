@@ -27,18 +27,33 @@ export function formatDuration(value) {
     : `${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`;
 }
 
-export function totalDuration(routine) {
-  return (routine?.steps ?? []).reduce((total, step) => total + toSafeSeconds(step.duration), 0);
+export function isRepetitionStep(step) {
+  return step?.type === 'exercise' && step.mode === 'repetitions';
 }
 
-export function durationBeforeStep(routine, index) {
-  return (routine?.steps ?? []).slice(0, index).reduce((total, step) => total + toSafeSeconds(step.duration), 0);
+export function stepDuration(step, settings = {}) {
+  return isRepetitionStep(step)
+    ? (Number(step.repetitions) || 1) * clamp(Number(settings.secondsPerRepetition) || 1, 0.1, 60)
+    : toSafeSeconds(step.duration);
 }
 
-export function routineProgress(routine, stepIndex, elapsedStepSeconds) {
-  const total = totalDuration(routine);
+export function durationLabel(routine, settings = {}) {
+  return `${routine.steps.some(isRepetitionStep) ? 'Stima ' : ''}${formatDuration(totalDuration(routine, settings))}`;
+}
+
+export function totalDuration(routine, settings = {}) {
+  return (routine?.steps ?? []).reduce((total, step) => total + stepDuration(step, settings), 0);
+}
+
+export function durationBeforeStep(routine, index, settings = {}) {
+  return (routine?.steps ?? []).slice(0, index).reduce((total, step) => total + stepDuration(step, settings), 0);
+}
+
+export function routineProgress(routine, stepIndex, elapsedStepSeconds, settings = {}) {
+  const total = totalDuration(routine, settings);
   if (!total) return 0;
-  return clamp((durationBeforeStep(routine, stepIndex) + elapsedStepSeconds) / total, 0, 1);
+  const elapsed = isRepetitionStep(routine.steps[stepIndex]) ? 0 : clamp(elapsedStepSeconds, 0, stepDuration(routine.steps[stepIndex], settings));
+  return clamp((durationBeforeStep(routine, stepIndex, settings) + elapsed) / total, 0, 1);
 }
 
 export function countSteps(routine, type) {

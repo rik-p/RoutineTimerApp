@@ -1,6 +1,6 @@
 import { playCue } from './audio.js';
 import { TimerEngine } from './timer-engine.js';
-import { deepClone, escapeHtml, formatDuration, routineProgress, totalDuration } from './utils.js';
+import { deepClone, durationLabel, isRepetitionStep, escapeHtml, formatDuration, routineProgress, totalDuration } from './utils.js';
 
 export class RoutinePlayer {
   constructor(root, routine, settings, callbacks = {}) {
@@ -25,7 +25,7 @@ export class RoutinePlayer {
   }
 
   get isActive() {
-    return ['countdown', 'running', 'paused'].includes(this.status);
+    return ['countdown', 'running', 'paused', 'transitioning'].includes(this.status);
   }
 
   async mount() {
@@ -62,7 +62,7 @@ export class RoutinePlayer {
         </header>
         <section class="routine-progress-wrap" aria-label="Progresso routine">
           <div class="progress-track"><div id="routine-progress" class="progress-fill routine"></div></div>
-          <div class="progress-caption"><span id="routine-elapsed">00:00</span><span id="routine-percent">0%</span><span>${formatDuration(totalDuration(this.routine))}</span></div>
+          <div class="progress-caption"><span id="routine-elapsed">00:00</span><span id="routine-percent">0%</span><span>${durationLabel(this.routine, this.settings)}</span></div>
         </section>
         <section class="card-stage" aria-label="Sequenza della routine">
           <article id="previous-card" class="player-card side previous" aria-hidden="true">${this.sideCardMarkup(previous)}</article>
@@ -92,13 +92,14 @@ export class RoutinePlayer {
       <span id="step-type" class="step-type ${step.type}">${step.type === 'pause' ? 'Pausa' : 'Esercizio'}</span>
       <h1 id="step-name">${escapeHtml(step.name)}</h1>
       <p id="step-notes" class="step-notes">${escapeHtml(step.notes || (step.type === 'pause' ? 'Respira e preparati al prossimo esercizio.' : ''))}</p>
-      <div id="timer" class="timer" aria-label="Tempo rimanente">${formatDuration(step.duration)}</div>
+      <div id="timer" class="timer" aria-label="${isRepetitionStep(step) ? 'Ripetizioni' : 'Tempo rimanente'}">${isRepetitionStep(step) ? step.repetitions : formatDuration(step.duration)}</div>
+      ${isRepetitionStep(step) ? '<p>Ripetizioni \u00b7 Premi Fatto per continuare</p>' : ''}
       <div class="progress-track step" aria-label="Progresso dello step"><div id="step-progress" class="progress-fill step"></div></div>`;
   }
 
   sideCardMarkup(step) {
     if (!step) return '<span class="side-empty">Fine</span>';
-    return `<span class="step-type ${step.type}">${step.type === 'pause' ? 'Pausa' : 'Esercizio'}</span><h2>${escapeHtml(step.name)}</h2><p>${formatDuration(step.duration)}</p>`;
+    return `<span class="step-type ${step.type}">${step.type === 'pause' ? 'Pausa' : 'Esercizio'}</span><h2>${escapeHtml(step.name)}</h2><p>${isRepetitionStep(step) ? `${step.repetitions} ripetizioni` : formatDuration(step.duration)}</p>`;
   }
 
   nextPreviewMarkup() {
@@ -171,7 +172,13 @@ export class RoutinePlayer {
     this.status = 'running';
     this.firedSignals.clear();
     this.announcer.textContent = `${step.type === 'pause' ? 'Pausa' : 'Esercizio'}: ${step.name}`;
-    this.engine.start(step.duration);
+    if (isRepetitionStep(step)) {
+      this.engine.stop();
+      this.updateTimer({ remainingMs: 0, elapsedMs: 0, progress: 0 });
+      this.announcer.textContent += `, ${step.repetitions} ripetizioni. Premi Fatto per continuare.`;
+    } else {
+      this.engine.start(step.duration);
+    }
     this.updateToggleControl();
     void this.requestWakeLock();
   }
@@ -207,13 +214,13 @@ export class RoutinePlayer {
     if (!step || !this.timerElement) return;
     const remainingSeconds = snapshot.remainingMs / 1000;
     const elapsedSeconds = snapshot.elapsedMs / 1000;
-    this.timerElement.textContent = formatDuration(remainingSeconds);
+    this.timerElement.textContent = isRepetitionStep(step) ? step.repetitions : formatDuration(remainingSeconds);
     this.stepProgress.style.width = `${snapshot.progress * 100}%`;
-    const totalProgress = routineProgress(this.routine, this.currentStepIndex, elapsedSeconds);
+    const totalProgress = routineProgress(this.routine, this.currentStepIndex, elapsedSeconds, this.settings);
     this.routineProgress.style.width = `${totalProgress * 100}%`;
-    this.routineElapsed.textContent = formatDuration(totalDuration(this.routine) * totalProgress);
+    this.routineElapsed.textContent = formatDuration(totalDuration(this.routine, this.settings) * totalProgress);
     this.routinePercent.textContent = `${Math.round(totalProgress * 100)}%`;
-    if (step.type === 'exercise') this.checkSignals(step, elapsedSeconds);
+    if (step.type === 'exercise' && !isRepetitionStep(step)) this.checkSignals(step, elapsedSeconds);
   }
 
   checkSignals(step, elapsedSeconds) {
@@ -260,14 +267,15 @@ export class RoutinePlayer {
     clearTimeout(this.overlayTimeout);
     this.hideSignal();
     this.currentStepIndex = Math.max(0, index);
+    this.status = 'transitioning';
     this.updateCards(animated);
-    this.startStep();
   }
 
   updateCards(animated) {
     const currentCard = this.root.querySelector('#current-card');
     if (animated) currentCard.classList.add('leaving');
-    window.setTimeout(() => {
+    clearTimeout(this.cardTimeout);
+    this.cardTimeout = window.setTimeout(() => {
       const step = this.routine.steps[this.currentStepIndex];
       const previous = this.routine.steps[this.currentStepIndex - 1];
       currentCard.innerHTML = this.currentCardMarkup(step);
@@ -277,11 +285,18 @@ export class RoutinePlayer {
       this.root.querySelector('#step-counter').textContent = `Step ${this.currentStepIndex + 1} di ${this.routine.steps.length}`;
       this.root.querySelector('#next-preview').innerHTML = this.nextPreviewMarkup();
       this.cacheElements();
+      this.startStep();
       requestAnimationFrame(() => currentCard.classList.remove('entering'));
     }, animated ? 260 : 0);
   }
 
   togglePause() {
+    if (isRepetitionStep(this.routine.steps[this.currentStepIndex])) {
+      if (this.status !== 'running') return;
+      this.playStepTransitionCue();
+      this.goToStep(this.currentStepIndex + 1, true);
+      return;
+    }
     if (this.status === 'running') {
       this.engine.pause();
       this.status = 'paused';
@@ -297,7 +312,8 @@ export class RoutinePlayer {
     const icon = this.root.querySelector('[data-toggle-icon]');
     const label = this.root.querySelector('[data-toggle-label]');
     if (icon) icon.textContent = paused ? '▶' : 'Ⅱ';
-    if (label) label.textContent = paused ? 'Riprendi' : 'Pausa';
+    if (label) label.textContent = isRepetitionStep(this.routine.steps[this.currentStepIndex]) ? 'Fatto' : paused ? 'Riprendi' : 'Pausa';
+    if (icon && isRepetitionStep(this.routine.steps[this.currentStepIndex])) icon.textContent = '?';
   }
 
   toggleSound() {
@@ -315,18 +331,19 @@ export class RoutinePlayer {
   }
 
   completeRoutine() {
+    clearTimeout(this.cardTimeout);
     this.engine.stop();
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.status = 'completed';
-    const actualSeconds = this.startedAt ? (Date.now() - this.startedAt) / 1000 : totalDuration(this.routine);
+    const actualSeconds = this.startedAt ? (Date.now() - this.startedAt) / 1000 : totalDuration(this.routine, this.settings);
     this.root.innerHTML = `
       <main class="shell centered-view completion-view">
         <section class="completion-card">
           <div class="completion-mark" aria-hidden="true">✓</div>
           <span class="eyebrow">Routine completata</span>
           <h1>${escapeHtml(this.routine.name)}</h1>
-          <div class="completion-stats"><div><strong>${formatDuration(totalDuration(this.routine))}</strong><span>prevista</span></div><div><strong>${formatDuration(actualSeconds)}</strong><span>effettiva</span></div></div>
+          <div class="completion-stats"><div><strong>${durationLabel(this.routine, this.settings)}</strong><span>prevista</span></div><div><strong>${formatDuration(actualSeconds)}</strong><span>effettiva</span></div></div>
           <button class="button primary wide" data-action="repeat">Ripeti</button>
           <button class="button ghost wide" data-action="home">Torna alle routine</button>
         </section>
@@ -336,6 +353,7 @@ export class RoutinePlayer {
   }
 
   destroy() {
+    clearTimeout(this.cardTimeout);
     this.engine.stop();
     clearTimeout(this.overlayTimeout);
     this.hideSignal();

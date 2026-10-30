@@ -4,9 +4,9 @@ import { RoutineEditor } from './routine-editor.js';
 import { RoutinePlayer } from './routine-player.js';
 import { parseRouteHash, toRouteHash } from './router.js';
 import { loadState, mergeState, replaceState, resetState, saveState } from './storage.js';
-import { countSteps, downloadJson, escapeHtml, formatDate, formatDuration, readJsonFile, totalDuration } from './utils.js';
+import { countSteps, durationLabel, downloadJson, escapeHtml, formatDate, formatDuration, readJsonFile, totalDuration } from './utils.js';
 
-const APP_VERSION = '1.5.0';
+const APP_VERSION = '1.6.0';
 let root = document.querySelector('#app');
 const toastRegion = document.querySelector('#toast-region');
 let state = loadState();
@@ -87,7 +87,7 @@ function createDialogMarkup() {
 function routineCardMarkup(routine) {
   return `
     <article class="routine-card surface" data-routine-id="${routine.id}">
-      <div class="routine-card-top"><span class="duration-pill">${formatDuration(totalDuration(routine))}</span><button class="icon-button small" data-action="menu" aria-label="Azioni per ${escapeHtml(routine.name)}">•••</button></div>
+      <div class="routine-card-top"><span class="duration-pill">${durationLabel(routine, state.settings)}</span><button class="icon-button small" data-action="menu" aria-label="Azioni per ${escapeHtml(routine.name)}">•••</button></div>
       <div><h3>${escapeHtml(routine.name)}</h3><p>${escapeHtml(routine.description || 'Una routine personalizzata.')}</p></div>
       <div class="routine-meta"><span>${countSteps(routine, 'exercise')} esercizi</span><span>${countSteps(routine, 'pause')} pause</span><span>Agg. ${formatDate(routine.updatedAt)}</span></div>
       <div class="routine-card-actions"><button class="button primary grow" data-action="play" ${routine.steps.length ? '' : 'disabled'}>Avvia</button><button class="button secondary" data-action="edit">Modifica</button></div>
@@ -110,6 +110,7 @@ function settingsDialogMarkup() {
           <label class="setting-row"><span><strong>Segnale intermedio</strong><small>Avviso all’interno di un esercizio</small></span><select name="intermediate-cue-sound" aria-label="Suono segnale intermedio"><option value="classic" ${state.settings.intermediateCueSound === 'classic' ? 'selected' : ''}>Due toni</option><option value="strong" ${state.settings.intermediateCueSound === 'strong' ? 'selected' : ''}>Beep deciso</option><option value="steady" ${state.settings.intermediateCueSound === 'steady' ? 'selected' : ''}>Beep lungo</option></select></label>
           <button class="button secondary wide" value="" type="button" data-action="test-intermediate-sound">Prova segnale intermedio</button>
           <label class="setting-row"><span><strong>Beep tra step</strong><small>Durata del suono al cambio scheda</small></span><input name="step-transition-sound-ms" type="number" min="50" max="2000" step="10" inputmode="numeric" value="${state.settings.stepTransitionSoundMs}" aria-label="Durata beep tra step in millisecondi"><em>ms</em></label>
+          <label class="setting-row"><span><strong>Secondi per ripetizione</strong><small>Stima della durata degli esercizi a ripetizioni</small></span><input name="seconds-per-repetition" type="number" min="0.1" max="60" step="0.1" value="${state.settings.secondsPerRepetition}" aria-label="Secondi stimati per ripetizione"></label>
           <label class="setting-row"><span><strong>Conto alla rovescia</strong><small>Prima di iniziare</small></span><select name="initial-countdown"><option value="0" ${state.settings.initialCountdown === 0 ? 'selected' : ''}>Nessuno</option><option value="3" ${state.settings.initialCountdown === 3 ? 'selected' : ''}>3 secondi</option><option value="5" ${state.settings.initialCountdown === 5 ? 'selected' : ''}>5 secondi</option></select></label>
           <label class="setting-row"><span><strong>Palette</strong><small>Colori dell’app</small></span><select name="palette"><option value="sage" ${state.settings.palette === 'sage' ? 'selected' : ''}>Verde e panna</option><option value="bordeaux" ${state.settings.palette === 'bordeaux' ? 'selected' : ''}>Bordeaux e panna</option><option value="midnight" ${state.settings.palette === 'midnight' ? 'selected' : ''}>Blu notte e sabbia</option><option value="plum" ${state.settings.palette === 'plum' ? 'selected' : ''}>Prugna e rosa cipria</option></select></label>
           <label class="setting-row"><span><strong>Aspetto</strong><small>Chiaro, scuro o sistema</small></span><select name="theme"><option value="system" ${state.settings.theme === 'system' ? 'selected' : ''}>Sistema</option><option value="light" ${state.settings.theme === 'light' ? 'selected' : ''}>Chiaro</option><option value="dark" ${state.settings.theme === 'dark' ? 'selected' : ''}>Scuro</option></select></label>
@@ -194,10 +195,20 @@ function bindHome() {
     if (event.target.name === 'main-cue-sound') state.settings.mainCueSound = event.target.value;
     if (event.target.name === 'intermediate-cue-sound') state.settings.intermediateCueSound = event.target.value;
     if (event.target.name === 'step-transition-sound-ms') state.settings.stepTransitionSoundMs = Number(event.target.value);
+    if (event.target.name === 'seconds-per-repetition') {
+      if (!event.target.checkValidity() || !event.target.value) return;
+      state.settings.secondsPerRepetition = Number(event.target.value);
+    }
     if (event.target.name === 'initial-countdown') state.settings.initialCountdown = Number(event.target.value);
     if (event.target.name === 'palette') state.settings.palette = event.target.value;
     if (event.target.name === 'theme') state.settings.theme = event.target.value;
     if (event.target.id !== 'import-file') updateState(state);
+    if (event.target.name === 'seconds-per-repetition') {
+      root.querySelectorAll('[data-routine-id]').forEach((card) => {
+        const routine = state.routines.find((item) => item.id === card.dataset.routineId);
+        if (routine) card.querySelector('.duration-pill').textContent = durationLabel(routine, state.settings);
+      });
+    }
   };
   root.querySelector('#settings-dialog')?.addEventListener('change', saveSetting);
   root.querySelector('#settings-dialog')?.addEventListener('input', saveSetting);
@@ -236,7 +247,7 @@ function renderEditor(routine) {
       updateState(state);
     },
     onBack: () => go('home'),
-  });
+  }, state.settings);
   editor.mount();
 }
 

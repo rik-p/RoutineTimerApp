@@ -156,7 +156,7 @@ h2 { letter-spacing: -0.025em; }
 .step-list { display: grid; gap: 14px; }
 .edit-step { border-radius: 20px; transition: opacity 180ms, transform 180ms; }
 .step-compact-name, .step-compact-duration { display: none; }
-.routine-dragging { cursor: grabbing; user-select: none; overflow-anchor: none; }
+.routine-dragging, .routine-dragging * { cursor: grabbing; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overflow-anchor: none; }
 .step-list.is-sorting { gap: 8px; overflow-anchor: none; }
 .is-sorting .edit-step, .drag-preview { border-radius: 12px; transition: none; }
 .is-sorting .step-fields, .is-sorting .step-type, .is-sorting .step-actions,
@@ -170,7 +170,7 @@ h2 { letter-spacing: -0.025em; }
 .is-sorting .drag-placeholder .step-toolbar { opacity: 0.35; }
 .drag-preview { position: fixed; z-index: 1000; margin: 0; pointer-events: none; background: var(--surface-solid); box-shadow: 0 12px 32px #0003; outline: 2px solid var(--brand); transform: rotate(-1deg); }
 .step-toolbar { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
-.drag-handle { min-width: 38px; min-height: 38px; padding: 0; color: var(--muted); background: transparent; touch-action: none; cursor: grab; }
+.drag-handle { min-width: 38px; min-height: 38px; padding: 0; color: var(--muted); background: transparent; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-user-drag: none; cursor: grab; }
 .step-number { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 50%; color: var(--muted); background: var(--bg); font-size: 0.72rem; font-weight: 800; }
 .step-type { display: inline-flex; width: fit-content; align-items: center; padding: 6px 9px; border-radius: 999px; color: var(--brand); background: var(--brand-soft); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
 .step-type.pause { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }

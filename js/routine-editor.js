@@ -1,5 +1,5 @@
 import { createExercise, createPause, duplicateStep, normalizeDurationParts } from './models.js';
-import { debounce, durationLabel, isRepetitionStep, deepClone, escapeHtml, uid } from './utils.js';
+import { debounce, durationLabel, formatDuration, isRepetitionStep, deepClone, escapeHtml, uid } from './utils.js';
 
 export class RoutineEditor {
   constructor(root, routine, callbacks = {}, settings = {}) {
@@ -7,7 +7,7 @@ export class RoutineEditor {
     this.root = root;
     this.routine = deepClone(routine);
     this.callbacks = callbacks;
-    this.draggedId = null;
+    this.dragSession = null;
     this.saveSoon = debounce(() => this.save(), 500);
   }
 
@@ -35,6 +35,7 @@ export class RoutineEditor {
         <section id="step-list" class="step-list" aria-label="Step della routine">
           ${this.routine.steps.map((step, index) => this.stepMarkup(step, index)).join('')}
         </section>
+        <p class="sr-only" id="reorder-status" role="status" aria-live="polite"></p>
         <div id="empty-steps" class="empty-steps" ${this.routine.steps.length ? 'hidden' : ''}><p>La sequenza è vuota. Aggiungi il primo step.</p></div>
         <section class="add-actions" aria-label="Aggiungi step">
           <button class="button primary" data-action="add-exercise">+ Esercizio</button>
@@ -49,8 +50,10 @@ export class RoutineEditor {
     return `
       <article class="edit-step surface" data-step-id="${step.id}">
         <div class="step-toolbar">
-          <button class="drag-handle" data-drag-handle draggable="true" aria-label="Trascina per riordinare" title="Trascina per riordinare">⠿</button>
+          <button class="drag-handle" data-drag-handle aria-label="Trascina per riordinare" title="Trascina per riordinare">⠿</button>
           <span class="step-number">${index + 1}</span>
+          <strong class="step-compact-name"></strong>
+          <span class="step-compact-duration"></span>
           <span class="step-type ${step.type}">${step.type === 'pause' ? 'Pausa' : 'Esercizio'}</span>
           <div class="step-actions">
             <button class="mini-button" data-action="move-up" aria-label="Sposta su" ${index === 0 ? 'disabled' : ''}>↑</button>
@@ -228,44 +231,128 @@ export class RoutineEditor {
 
   bindDragAndDrop() {
     const list = this.root.querySelector('#step-list');
-    list.addEventListener('dragstart', (event) => {
-      const card = event.target.closest('[data-step-id]');
-      if (!card) return;
-      this.draggedId = card.dataset.stepId;
-      card.classList.add('dragging');
-      event.dataTransfer.effectAllowed = 'move';
-    });
-    list.addEventListener('dragend', (event) => event.target.closest('[data-step-id]')?.classList.remove('dragging'));
-    list.addEventListener('dragover', (event) => event.preventDefault());
-    list.addEventListener('drop', (event) => {
+    const options = { signal: this.eventController.signal };
+    list.addEventListener('pointerdown', (event) => {
+      const handle = event.target.closest('[data-drag-handle]');
+      if (!handle || !event.isPrimary || event.button !== 0 || this.dragSession) return;
       event.preventDefault();
-      const target = event.target.closest('[data-step-id]');
-      this.reorderByIds(this.draggedId, target?.dataset.stepId);
-    });
-
-    list.querySelectorAll('[data-drag-handle]').forEach((handle) => {
-      handle.addEventListener('pointerdown', (event) => {
-        if (event.pointerType === 'mouse') return;
+      this.beginDrag(handle.closest('[data-step-id]'), event);
+    }, options);
+    window.addEventListener('pointermove', (event) => {
+      if (event.pointerId !== this.dragSession?.pointerId) return;
+      event.preventDefault();
+      this.dragSession.y = event.clientY;
+      this.positionDrag();
+    }, { ...options, passive: false });
+    window.addEventListener('pointerup', (event) => {
+      if (event.pointerId === this.dragSession?.pointerId) this.finishDrag();
+    }, options);
+    window.addEventListener('pointercancel', (event) => {
+      if (event.pointerId === this.dragSession?.pointerId) this.finishDrag(true);
+    }, options);
+    this.root.addEventListener('lostpointercapture', () => this.finishDrag(true), options);
+    window.addEventListener('blur', () => this.finishDrag(true), options);
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && this.dragSession) {
         event.preventDefault();
-        const card = handle.closest('[data-step-id]');
-        this.draggedId = card.dataset.stepId;
-        card.classList.add('dragging');
-        handle.setPointerCapture(event.pointerId);
-      });
-      handle.addEventListener('pointerup', (event) => {
-        if (!this.draggedId) return;
-        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-step-id]');
-        this.root.querySelector(`[data-step-id="${this.draggedId}"]`)?.classList.remove('dragging');
-        this.reorderByIds(this.draggedId, target?.dataset.stepId);
-        this.draggedId = null;
-      });
+        this.finishDrag(true);
+      }
+    }, options);
+    this.eventController.signal.addEventListener('abort', () => this.finishDrag(true), { once: true });
+  }
+
+  beginDrag(card, event) {
+    const list = card.parentElement;
+    const oldTop = card.getBoundingClientRect().top;
+    // Read from the current model so names and repetition counts include unsaved edits.
+    list.querySelectorAll('[data-step-id]').forEach((row) => {
+      const step = this.routine.steps.find((item) => item.id === row.dataset.stepId);
+      row.querySelector('.step-compact-name').textContent = step.name;
+      row.querySelector('.step-compact-duration').textContent = isRepetitionStep(step)
+        ? `${step.repetitions} rip.` : formatDuration(step.duration);
+    });
+    document.body.classList.add('routine-dragging');
+    list.classList.add('is-sorting');
+    window.scrollBy(0, card.getBoundingClientRect().top - oldTop);
+    const preview = card.cloneNode(true);
+    preview.removeAttribute('data-step-id');
+    preview.classList.add('drag-preview');
+    preview.setAttribute('aria-hidden', 'true');
+    preview.inert = true;
+    const bounds = card.getBoundingClientRect();
+    preview.style.width = `${bounds.width}px`;
+    preview.style.left = `${bounds.left}px`;
+    document.body.append(preview);
+    card.classList.add('drag-placeholder');
+    this.dragSession = { card, list, preview, pointerId: event.pointerId, y: event.clientY, moved: false };
+    this.root.setPointerCapture(event.pointerId);
+    this.positionDrag(false);
+    this.root.querySelector('#reorder-status').textContent = 'Trascina lo step nella nuova posizione. Esc per annullare.';
+    const autoScroll = () => {
+      const drag = this.dragSession;
+      if (!drag) return;
+      const edge = 72;
+      const direction = drag.y < edge ? -1 : drag.y > window.innerHeight - edge ? 1 : 0;
+      if (direction) {
+        const distance = direction < 0 ? edge - drag.y : drag.y - (window.innerHeight - edge);
+        window.scrollBy(0, direction * Math.min(18, Math.max(2, distance / 4)));
+        this.positionDrag(drag.moved);
+      }
+      this.dragFrame = requestAnimationFrame(autoScroll);
+    };
+    this.dragFrame = requestAnimationFrame(autoScroll);
+  }
+
+  positionDrag(reorder = true) {
+    const drag = this.dragSession;
+    if (!drag) return;
+    drag.preview.style.top = `${drag.y - drag.preview.getBoundingClientRect().height / 2}px`;
+    if (!reorder) return;
+    drag.moved = true;
+    const rows = [...drag.list.querySelectorAll('[data-step-id]')].filter((row) => row !== drag.card);
+    const next = rows.find((row) => {
+      const bounds = row.getBoundingClientRect();
+      return drag.y < bounds.top + bounds.height / 2;
+    });
+    if (drag.card.nextElementSibling !== (next ?? null)) {
+      drag.list.insertBefore(drag.card, next ?? null);
+      this.updateStepPositions();
+    }
+  }
+
+  updateStepPositions() {
+    const rows = [...this.root.querySelectorAll('#step-list > [data-step-id]')];
+    rows.forEach((row, index) => {
+      row.querySelector('.step-number').textContent = index + 1;
+      row.querySelector('[data-action="move-up"]').disabled = index === 0;
+      row.querySelector('[data-action="move-down"]').disabled = index === rows.length - 1;
     });
   }
 
-  reorderByIds(sourceId, targetId) {
-    if (!sourceId || !targetId || sourceId === targetId) return;
-    const from = this.routine.steps.findIndex((step) => step.id === sourceId);
-    const to = this.routine.steps.findIndex((step) => step.id === targetId);
-    this.moveStep(from, to);
+  finishDrag(cancelled = false) {
+    const drag = this.dragSession;
+    if (!drag) return;
+    this.dragSession = null;
+    cancelAnimationFrame(this.dragFrame);
+    if (this.root.hasPointerCapture(drag.pointerId)) this.root.releasePointerCapture(drag.pointerId);
+    const rows = [...drag.list.querySelectorAll('[data-step-id]')];
+    const steps = new Map(this.routine.steps.map((step) => [step.id, step]));
+    const reordered = rows.some((row, index) => row.dataset.stepId !== this.routine.steps[index].id);
+    if (cancelled) {
+      const cards = new Map(rows.map((row) => [row.dataset.stepId, row]));
+      this.routine.steps.forEach((step) => drag.list.append(cards.get(step.id)));
+    } else if (reordered) {
+      this.routine.steps = rows.map((row) => steps.get(row.dataset.stepId));
+      this.save();
+    }
+    drag.preview.remove();
+    drag.card.classList.remove('drag-placeholder');
+    drag.list.classList.remove('is-sorting');
+    this.updateStepPositions();
+    const handle = drag.card.querySelector('[data-drag-handle]');
+    handle.focus({ preventScroll: true });
+    handle.scrollIntoView({ block: 'nearest' });
+    document.body.classList.remove('routine-dragging');
+    this.root.querySelector('#reorder-status').textContent = cancelled ? 'Spostamento annullato.' : 'Ordine degli step salvato.';
   }
 }

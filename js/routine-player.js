@@ -93,7 +93,7 @@ export class RoutinePlayer {
       <h1 id="step-name">${escapeHtml(step.name)}</h1>
       <p id="step-notes" class="step-notes">${escapeHtml(step.notes || (step.type === 'pause' ? 'Respira e preparati al prossimo esercizio.' : ''))}</p>
       <div id="timer" class="timer" aria-label="${isRepetitionStep(step) ? 'Ripetizioni' : 'Tempo rimanente'}">${isRepetitionStep(step) ? step.repetitions : formatDuration(step.duration)}</div>
-      ${isRepetitionStep(step) ? '<p>Ripetizioni \u00b7 Premi Fatto per continuare</p>' : ''}
+      ${isRepetitionStep(step) ? '<p>Ripetizioni</p>' : ''}
       <div class="progress-track step" aria-label="Progresso dello step"><div id="step-progress" class="progress-fill step"></div></div>`;
   }
 
@@ -175,7 +175,7 @@ export class RoutinePlayer {
     if (isRepetitionStep(step)) {
       this.engine.stop();
       this.updateTimer({ remainingMs: 0, elapsedMs: 0, progress: 0 });
-      this.announcer.textContent += `, ${step.repetitions} ripetizioni. Premi Fatto per continuare.`;
+      this.announcer.textContent += `, ${step.repetitions} ripetizioni.`;
     } else {
       this.engine.start(step.duration);
     }
@@ -313,7 +313,7 @@ export class RoutinePlayer {
     const label = this.root.querySelector('[data-toggle-label]');
     if (icon) icon.textContent = paused ? '▶' : 'Ⅱ';
     if (label) label.textContent = isRepetitionStep(this.routine.steps[this.currentStepIndex]) ? 'Fatto' : paused ? 'Riprendi' : 'Pausa';
-    if (icon && isRepetitionStep(this.routine.steps[this.currentStepIndex])) icon.textContent = '?';
+    if (icon) icon.hidden = isRepetitionStep(this.routine.steps[this.currentStepIndex]);
   }
 
   toggleSound() {

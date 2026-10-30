@@ -155,7 +155,20 @@ h2 { letter-spacing: -0.025em; }
 .step-count { color: var(--muted); font-size: 0.85rem; }
 .step-list { display: grid; gap: 14px; }
 .edit-step { border-radius: 20px; transition: opacity 180ms, transform 180ms; }
-.edit-step.dragging { opacity: 0.45; transform: scale(0.985); }
+.step-compact-name, .step-compact-duration { display: none; }
+.routine-dragging { cursor: grabbing; user-select: none; overflow-anchor: none; }
+.step-list.is-sorting { gap: 8px; overflow-anchor: none; }
+.is-sorting .edit-step, .drag-preview { border-radius: 12px; transition: none; }
+.is-sorting .step-fields, .is-sorting .step-type, .is-sorting .step-actions,
+.drag-preview .step-fields, .drag-preview .step-type, .drag-preview .step-actions { display: none; }
+.is-sorting .step-toolbar, .drag-preview .step-toolbar { gap: 8px; padding: 6px 10px; border-bottom: 0; flex-wrap: nowrap; }
+.is-sorting .step-compact-name, .drag-preview .step-compact-name { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; }
+.is-sorting .step-compact-duration, .drag-preview .step-compact-duration { display: block; flex-shrink: 0; color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.is-sorting .step-number, .drag-preview .step-number { flex-shrink: 0; }
+.is-sorting .drag-handle, .drag-preview .drag-handle { cursor: grabbing; }
+.is-sorting .drag-placeholder { outline: 2px dashed var(--brand); outline-offset: -2px; background: var(--brand-soft); }
+.is-sorting .drag-placeholder .step-toolbar { opacity: 0.35; }
+.drag-preview { position: fixed; z-index: 1000; margin: 0; pointer-events: none; background: var(--surface-solid); box-shadow: 0 12px 32px #0003; outline: 2px solid var(--brand); transform: rotate(-1deg); }
 .step-toolbar { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
 .drag-handle { min-width: 38px; min-height: 38px; padding: 0; color: var(--muted); background: transparent; touch-action: none; cursor: grab; }
 .step-number { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 50%; color: var(--muted); background: var(--bg); font-size: 0.72rem; font-weight: 800; }
